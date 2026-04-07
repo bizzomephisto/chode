@@ -1,3 +1,7 @@
+**UPDATE**
+chode is advancing, will update code soon... thanks
+
+
 **Better instructions coming soon**
 
 Install LMStudio:
