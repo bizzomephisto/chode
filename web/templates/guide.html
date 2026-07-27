@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PETEY - Server Setup Guide</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .privacy-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+        h1, h2, h3 {
+            color: var(--text-header);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        h1 { margin-bottom: 8px; }
+        h2 { margin-top: 32px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 1.4rem;}
+        h3 { margin-top: 20px; color: var(--primary); font-size: 1.1rem;}
+        p, ul, li {
+            color: var(--text-normal);
+            line-height: 1.6;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 12px;
+        }
+        strong { color: var(--text-header); }
+        .last-updated {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+        a { color: var(--primary); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .code-inline {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #da373c;
+        }
+    </style>
+</head>
+
+<body class="landing-page">
+
+    <nav class="landing-nav">
+        <div class="logo">PETEY<span>_AI</span></div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+            <a href="/#about" class="nav-link">Origins</a>
+            <a href="/#features" class="nav-link">Functions</a>
+            <a href="/guide" class="nav-link">Setup Guide</a>
+            <a href="/#faq" class="nav-link">FAQ</a>
+            <a href="https://github.com/bizzomephisto/petey" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a>
+            {% if session.get('user_token') %}
+                <a href="/dashboard" class="nav-login-btn">Dashboard</a>
+            {% else %}
+                <a href="/login" class="nav-login-btn">Dashboard Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="privacy-container">
+            <h1>PETEY Optimal Server Setup Guide</h1>
+            <div class="last-updated">PETEY is designed to integrate seamlessly into your existing server layout without requiring multiple dedicated bot channels. Follow the simple blueprint below:</div>
+
+            <h2>🔧 1. The Config Channel</h2>
+            <p>The only dedicated channel PETEY needs is a private <strong>Config Channel</strong> (e.g., <span class="code-inline">#petey-control</span> or <span class="code-inline">#admin-chat</span>).</p>
+            <p><strong>Purpose:</strong> A private control room where server owners and admins configure PETEY, verify prompts, and upload reference files directly to PETEY's long-term memory via the <span class="code-inline">/ingest</span> command.</p>
+
+            <h2>💬 2. General Chatting</h2>
+            <p>PETEY is allowed to chat with the general population in all public channels where he has permissions. Simply ping <span class="code-inline">@PETEY</span> or mention him by name in general chats to start a conversation. He will read and remember the discussion to build his RAG memories.</p>
+
+            <h2>🎭 3. Channel-Specific Personalities</h2>
+            <p>You can set up unique personalities for specific channels (up to a maximum of 3 channels). For example, you can configure PETEY to act as a strict Dungeon Master in <span class="code-inline">#dnd-games</span>, a snarky code reviewer in <span class="code-inline">#coding</span>, or a creative brainstorming partner in <span class="code-inline">#design-lab</span>. Manage these channel overrides from the dashboard.</p>
+        </div>
+    </div>
+
+    <footer class="landing-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">PETEY<span>_AI</span></div>
+                <p>&copy; 2026 PeteyAI. All rights reserved. | <a href="/tos" style="color:var(--primary); text-decoration:none;">Terms of Service</a> | <a href="/privacy" style="color:var(--primary); text-decoration:none;">Privacy Policy</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+
+        menuBtn.addEventListener('click', () => {
+            menuBtn.classList.toggle('open');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close mobile menu on link click
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                menuBtn.classList.remove('open');
+                navLinks.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PETEY - Authorize Bot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=22">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-normal);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        .standalone-topbar {
+            background-color: var(--bg-secondary);
+            height: var(--topbar-h);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .auth-card {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 32px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .bot-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+        .auth-title {
+            color: var(--text-header);
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .auth-subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .input-styled {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-tertiary);
+            color: var(--text-normal);
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .input-code {
+            font-family: monospace;
+            font-size: 1.5rem;
+            letter-spacing: 0.3em;
+            text-align: center;
+            text-transform: uppercase;
+            padding: 12px;
+        }
+        .input-styled:focus {
+            outline: none;
+            border-color: #5865f2;
+        }
+        .auth-btn {
+            background-color: #5865f2;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 4px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+        .auth-btn:hover { background-color: #4752c4; }
+        .error-msg {
+            background-color: #da373c;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        .auth-back {
+            color: #00a8fc;
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 16px;
+        }
+        .auth-back:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <nav class="landing-nav">
+        <div class="logo">PETEY<span>_AI</span></div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+            <a href="/#about" class="nav-link">Origins</a>
+            <a href="/#features" class="nav-link">Functions</a>
+            <a href="/#faq" class="nav-link">FAQ</a>
+            <a href="https://github.com/bizzomephisto/petey" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a>
+            {% if session.get('user_token') %}
+                <a href="/dashboard" class="nav-login-btn">Dashboard</a>
+            {% else %}
+                <a href="/login" class="nav-login-btn">Dashboard Login</a>
+            {% endif %}
+        </div>
+    </nav>
+    
+    <div class="main-container">
+        <div class="auth-card">
+            <span class="bot-icon">🤖</span>
+            <h2 class="auth-title">Authorize PETEY</h2>
+            
+            {% if remaining is defined and remaining <= 0 %}
+                <div class="auth-subtitle">PETEY's early access beta is currently full. (10/10 capacity). Please check back later!</div>
+                <a href="/dashboard" class="auth-back">← Back to Dashboard</a>
+            {% else %}
+                <div class="auth-subtitle">PETEY is in closed beta. Please enter your 6-digit access code to authorize this server.</div>
+                
+                {% if error %}
+                <div class="error-msg">{{ error }}</div>
+                {% endif %}
+                
+                <form method="POST" action="/add_bot/{{ server_id }}">
+                    <div class="form-group">
+                        <label for="code" style="text-align: center;">ACCESS CODE <span style="color: #da373c;">*</span></label>
+                        <input class="input-styled input-code" type="text" id="code" name="code" maxlength="6" required autocomplete="off" placeholder="XXXXXX">
+                    </div>
+                    <button type="submit" class="auth-btn" onclick="this.innerHTML='Verifying...'; this.style.opacity='0.8';">Authorize PETEY</button>
+                </form>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+                    <a href="/dashboard" class="auth-back" style="margin: 0;">← Cancel Action</a>
+                </div>
+                
+                {% if remaining is defined %}
+                <div style="margin-top: 24px; font-size: 0.8rem; color: #4f545c; font-weight: bold; text-transform: uppercase;">
+                    {{ remaining }} Invites Remaining
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    <div style="text-align: center; padding: 20px; font-size: 0.8rem; color: #b5bac1; margin-top: 40px;">
+        <a href="/tos" style="color: #b5bac1; text-decoration: none; margin: 0 10px;">Terms of Service</a> | 
+        <a href="/privacy" style="color: #b5bac1; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+    </div>
+    <script>
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+
+        menuBtn.addEventListener('click', () => {
+            menuBtn.classList.toggle('open');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close mobile menu on link click
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                menuBtn.classList.remove('open');
+                navLinks.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Wizard — {{ guild_name }} — PETEY</title>
+    <meta name="description" content="Configure PETEY's Personas for {{ guild_name }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='wizard.css') }}">
+</head>
+<body class="wizard-body">
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header class="wiz-header">
+    <div class="wiz-header-left">
+        <div class="wiz-logo">
+            <span class="wiz-icon">🧙</span>
+            <span>Wizard Mode</span>
+        </div>
+        <span class="wiz-guild-name">{{ guild_name }}</span>
+    </div>
+    <div class="wiz-header-right">
+        <button class="wiz-btn wiz-btn-ghost wiz-btn-sm" onclick="saveAndExit()">Save &amp; Exit</button>
+        <a href="/dashboard" class="wiz-btn wiz-btn-secondary wiz-btn-sm">← Dashboard</a>
+    </div>
+</header>
+
+<!-- ══════════════ STEPPER ══════════════ -->
+<nav class="wiz-stepper" id="wiz-stepper">
+    <!-- Built dynamically by JS -->
+</nav>
+
+<!-- ══════════════ PERSONA TAB STRIP (steps 2-7 + review) ══════════════ -->
+<div class="wiz-persona-tabs" id="wiz-persona-tabs" style="display:none;">
+    <!-- Built dynamically by JS -->
+</div>
+
+<!-- ══════════════ CONTENT ══════════════ -->
+<main class="wiz-content-wrap">
+
+    <!-- ── STEP 1: Welcome ── -->
+    <div class="wiz-step-panel" id="step-1">
+        <div class="wiz-welcome">
+            <div class="wiz-welcome-icon">🧙</div>
+            <h1 class="wiz-welcome-title">Welcome to Wizard Mode</h1>
+            <p class="wiz-welcome-desc">
+                I'll help you set up to 3 Personas — each with their own personality,
+                voice, behavior, and channel assignments.
+            </p>
+            <ul class="wiz-welcome-features">
+                <li>Persona basics &amp; personality</li>
+                <li>Behavior &amp; proactiveness</li>
+                <li>Channel assignment</li>
+                <li>Safety &amp; limits</li>
+            </ul>
+            <p style="color: var(--wiz-text-muted); font-size: 0.85rem; margin-bottom: 28px;">
+                Personas 2 and 3 are optional.<br>
+                Slot 1 (Default) sets the tone for any channel you don't map explicitly.
+            </p>
+            <div class="wiz-welcome-actions">
+                <button class="wiz-btn wiz-btn-primary wiz-btn-lg" onclick="goToStep(2)">Begin Setup →</button>
+                <button class="wiz-btn wiz-btn-secondary wiz-btn-lg" onclick="useDefaults()">Use Defaults</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── STEP 2: Persona Basics ── -->
+    <div class="wiz-step-panel" id="step-2">
+        <h2 class="wiz-step-title">Persona Basics</h2>
+        <p class="wiz-step-subtitle" id="step2-subtitle">Set up the identity for this Persona.</p>
+
+        <div class="wiz-card">
+            <div class="wiz-form-row">
+                <div class="wiz-form-group">
+                    <label class="wiz-label">Display Name</label>
+                    <input type="text" class="wiz-input" id="persona-name" placeholder="e.g. Wizardly" maxlength="32">
+                </div>
+            </div>
+
+            <div class="wiz-form-group">
+                <label class="wiz-label">Role Tag</label>
+                <div class="wiz-radio-group" id="persona-role">
+                    <label class="wiz-radio-pill selected" data-val="Assistant"><input type="radio" name="role" checked> Assistant</label>
+                    <label class="wiz-radio-pill" data-val="Moderator"><input type="radio" name="role"> Moderator</label>
+                    <label class="wiz-radio-pill" data-val="Lorekeeper"><input type="radio" name="role"> Lorekeeper</label>
+                    <label class="wiz-radio-pill" data-val="Companion"><input type="radio" name="role"> Companion</label>
+                </div>
+            </div>
+
+            <div class="wiz-form-group">
+                <label class="wiz-label">Tagline <span style="font-weight:400;color:var(--wiz-text-muted)">(shown in embeds)</span></label>
+                <input type="text" class="wiz-input" id="persona-tagline" placeholder='e.g. "I am the sarcastic cartographer of #dungeon-talk"' maxlength="120">
+            </div>
+
+            <div id="persona-default-badge" class="wiz-info-card" style="margin-top:12px;">
+                <span class="wiz-info-icon">📌</span>
+                <span class="wiz-info-text">This Persona is the <strong>Default</strong> — used for any unmapped channel.</span>
+            </div>
+        </div>
+
+        <div class="wiz-footer">
+            <div class="wiz-footer-left">
+                <button class="wiz-btn wiz-btn-secondary" onclick="goToStep(1)">← Back</button>
+            </div>
+            <div class="wiz-footer-right">
+                <button class="wiz-btn wiz-btn-primary" onclick="goToStep(3)">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── STEP 3: Personality ── -->
+    <div class="wiz-step-panel" id="step-3">
+        <h2 class="wiz-step-title">Personality</h2>
+        <p class="wiz-step-subtitle" id="step3-subtitle">Choose a preset or craft a custom voice.</p>
+
+        <div class="wiz-card">
+            <div class="wiz-card-title">Start from a Preset</div>
+            <div class="wiz-preset-grid" id="preset-grid">
+                <!-- Built by JS -->
+            </div>
+        </div>
+
+        <div class="wiz-card">
+            <div class="wiz-card-title">System Prompt</div>
+            <textarea class="wiz-textarea" id="persona-prompt" placeholder="Describe how this Persona should behave..." maxlength="4000"></textarea>
+            <div class="wiz-char-count"><span id="prompt-chars">0</span> / 4000</div>
+
+            <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:6px;">
+                <button class="wiz-btn wiz-btn-secondary wiz-btn-sm" onclick="rewordPrompt('funnier')">✏️ Funnier</button>
+                <button class="wiz-btn wiz-btn-secondary wiz-btn-sm" onclick="rewordPrompt('serious')">✏️ Serious</button>
+                <button class="wiz-btn wiz-btn-secondary wiz-btn-sm" onclick="rewordPrompt('concise')">✏️ Concise</button>
+                <button class="wiz-btn wiz-btn-secondary wiz-btn-sm" onclick="rewordPrompt('elaborate')">✏️ Elaborate</button>
+            </div>
+
+            <div id="copy-from-p1-btn" style="margin-top: 12px; display: none;">
+                <button class="wiz-btn wiz-btn-ghost wiz-btn-sm" onclick="copyFromPersona1()">📋 Copy from Persona 1</button>
+            </div>
+        </div>
+
+        <div class="wiz-card">
+            <div class="wiz-card-title">Personality Traits</div>
+            <div class="wiz-trait-chips" id="trait-chips">
+                <!-- Built by JS -->
+            </div>
+        </div>
+
+        <div class="wiz-card">
+            <div class="wiz-card-title">Nuance Sliders</div>
+            <div class="wiz-slider-row">
+                <span class="wiz-slider-label">Tone</span>
+                <div class="wiz-slider-track">
+                    <input type="range" id="slider-tone" min="0" max="100" value="50">
+                    <div class="wiz-slider-ends"><span>Serious</span><span>Playful</span></div>
+                </div>
+                <span class="wiz-slider-value" id="val-tone">50</span>
+            </div>
+            <div class="wiz-slider-row">
+                <span class="wiz-slider-label">Verbosity</span>
+                <div class="wiz-slider-track">
+                    <input type="range" id="slider-verbosity" min="0" max="100" value="50">
+                    <div class="wiz-slider-ends"><span>Concise</span><span>Detailed</span></div>
+                </div>
+                <span class="wiz-slider-value" id="val-verbosity">50</span>
+            </div>
+            <div class="wiz-slider-row">
+                <span class="wiz-slider-label">Formality</span>
+                <div class="wiz-slider-track">
+                    <input type="range" id="slider-formality" min="0" max="100" value="50">
+                    <div class="wiz-slider-ends"><span>Casual</span><span>Formal</span></div>
+                </div>
+                <span class="wiz-slider-value" id="val-formality">50</span>
+            </div>
+            <div class="wiz-slider-row">
+                <span class="wiz-slider-label">Empathy</span>
+                <div class="wiz-slider-track">
+                    <input type="range" id="slider-empathy" min="0" max="100" value="50">
+                    <div class="wiz-slider-ends"><span>Detached</span><span>Warm</span></div>
+                </div>
+                <span class="wiz-slider-value" id="val-empathy">50</span>
+            </div>
+        </div>
+
+        <div class="wiz-footer">
+            <div class="wiz-footer-left"><button class="wiz-btn wiz-btn-secondary" onclick="goToStep(2)">← Back</button></div>
+            <div class="wiz-footer-right"><button class="wiz-btn wiz-btn-primary" onclick="goToStep(4)">Next →</button></div>
+        </div>
+    </div>
+
+    <!-- ── STEP 4: Behavior Q&A ── -->
+    <div class="wiz-step-panel" id="step-4">
+        <h2 class="wiz-step-title">Behavior</h2>
+        <p class="wiz-step-subtitle" id="step4-subtitle">Answer a few questions to set the behavior mode.</p>
+
+        <div id="behavior-qa-content">
+            <!-- Slot 1: Q&A shown. Slot 2/3: locked info card. Built by JS -->
+        </div>
+
+        <div class="wiz-footer">
+            <div class="wiz-footer-left"><button class="wiz-btn wiz-btn-secondary" onclick="goToStep(3)">← Back</button></div>
+            <div class="wiz-footer-right"><button class="wiz-btn wiz-btn-primary" onclick="goToStep(5)">Next →</button></div>
+        </div>
+    </div>
+
+    <!-- ── STEP 5: Proactiveness ── -->
+    <div class="wiz-step-panel" id="step-5">
+        <h2 class="wiz-step-title">Proactiveness</h2>
+        <p class="wiz-step-subtitle" id="step5-subtitle">How often should this Persona act on its own?</p>
+
+        <div id="proactive-content">
+            <!-- Slot 1: slider + cooldowns. Slot 2/3: locked. Built by JS -->
+        </div>
+
+        <div class="wiz-footer">
+            <div class="wiz-footer-left"><button class="wiz-btn wiz-btn-secondary" onclick="goToStep(4)">← Back</button></div>
+            <div class="wiz-footer-right"><button class="wiz-btn wiz-btn-primary" onclick="goToStep(6)">Next →</button></div>
+        </div>
+    </div>
+
+    <!-- ── STEP 6: Channels ── -->
+    <div class="wiz-step-panel" id="step-6">
+        <h2 class="wiz-step-title">Channels</h2>
+        <p class="wiz-step-subtitle">Assign each channel to a Persona.</p>
+
+        <div class="wiz-info-card" style="margin-bottom:16px;">
+            <span class="wiz-info-icon">ℹ️</span>
+            <span class="wiz-info-text">Channels assigned to a Persona will use that Persona's name, prompt, traits, and behavior. Persona 1 is the default fallback for any channel not explicitly assigned.</span>
+        </div>
+
+        <div class="wiz-card">
+            <div class="wiz-channel-list" id="channel-list">
+                <!-- Built by JS from server channels -->
+            </div>
+
+            <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+                <label class="wiz-checkbox-pill" id="dm-toggle">
+                    <input type="checkbox" id="allow-dms" checked> ☑ Allow DMs → routed to Persona 1 (Default)
+                </label>
+                <label class="wiz-checkbox-pill" id="forum-toggle">
+                    <input type="checkbox" id="forum-inherit" checked> ☑ Forum threads → inherit parent channel's Persona
+                </label>
+            </div>
+        </div>
+
+        <div class="wiz-footer">
+            <div class="wiz-footer-left"><button class="wiz-btn wiz-btn-secondary" onclick="goToStep(5)">← Back</button></div>
+            <div class="wiz-footer-right"><button class="wiz-btn wiz-btn-primary" onclick="goToStep(7)">Next →</button></div>
+        </div>
+    </div>
+
+    <!-- ── STEP 7: Safety ── -->
+    <div class="wiz-step-panel" id="step-7">
+        <h2 class="wiz-step-title">Safety &amp; Limits</h2>
+        <p class="wiz-step-subtitle" id="step7-subtitle">Configure safety filters for this Persona.</p>
+
+        <div class="wiz-card">
+            <div class="wiz-card-title">Per-Persona Safety</div>
+            <label class="wiz-checkbox-pill" style="margin-bottom:12px;" id="safety-default-toggle">
+                <input type="checkbox" id="safety-use-default" checked> Use server default
+            </label>
+
+            <div id="safety-persona-fields">
+                <div class="wiz-form-group">
+                    <label class="wiz-label">Profanity Filter</label>
+                    <div class="wiz-radio-group" id="profanity-filter">
+                        <label class="wiz-radio-pill selected" data-val="off"><input type="radio" name="profanity" checked> Off</label>
+                        <label class="wiz-radio-pill" data-val="soft"><input type="radio" name="profanity"> Soft</label>
+                        <label class="wiz-radio-pill" data-val="strict"><input type="radio" name="profanity"> Strict</label>
+                    </div>
+                </div>
+                <div class="wiz-form-group">
+                    <label class="wiz-label">Blocked Keywords <span style="font-weight:400;color:var(--wiz-text-muted)">(comma-separated)</span></label>
+                    <input type="text" class="wiz-input" id="blocked-keywords" placeholder="spam-word, another-keyword">
+                </div>
+            </div>
+        </div>
+
+        <div class="wiz-card">
+            <div class="wiz-card-title">Server-Global Limits</div>
+            <div class="wiz-form-row">
+                <div class="wiz-form-group">
+                    <label class="wiz-label">Max bot replies / hour</label>
+                    <input type="number" class="wiz-input" id="global-max-replies" value="30" min="1" max="200">
+                </div>
+                <div class="wiz-form-group">
+                    <label class="wiz-label">Daily token budget</label>
+                    <input type="number" class="wiz-input" id="global-token-budget" value="50000" min="1000" step="1000">
+                </div>
+            </div>
+        </div>
+
+        <div class="wiz-footer">
+            <div class="wiz-footer-left"><button class="wiz-btn wiz-btn-secondary" onclick="goToStep(6)">← Back</button></div>
+            <div class="wiz-footer-right"><button class="wiz-btn wiz-btn-primary" onclick="goToStep(8)">Next →</button></div>
+        </div>
+    </div>
+
+    <!-- ── STEP 8: Review ── -->
+    <div class="wiz-step-panel" id="step-8">
+        <h2 class="wiz-step-title">Review</h2>
+        <p class="wiz-step-subtitle">Review your Persona configuration before saving.</p>
+
+        <div class="wiz-card" id="review-persona-card">
+            <!-- Built by JS: current persona summary -->
+        </div>
+
+        <div class="wiz-card wiz-review-all" id="review-all-card">
+            <div class="wiz-card-title">All Personas Overview</div>
+            <table class="wiz-review-all-table">
+                <thead>
+                    <tr><th>Persona</th><th>Slot</th><th>Channels</th><th>Behavior</th><th>Safety</th></tr>
+                </thead>
+                <tbody id="review-all-tbody">
+                    <!-- Built by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="wiz-footer">
+            <div class="wiz-footer-left"><button class="wiz-btn wiz-btn-secondary" onclick="goToStep(7)">← Back</button></div>
+            <div class="wiz-footer-right">
+                <button class="wiz-btn wiz-btn-success wiz-btn-lg" onclick="saveAll()">💾 Save All Personas &amp; Deploy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Post-save ── -->
+    <div class="wiz-step-panel" id="step-done" style="display:none;">
+        <div class="wiz-done">
+            <div class="wiz-done-icon">✅</div>
+            <h2 class="wiz-done-title">Setup Complete</h2>
+            <div class="wiz-done-desc" id="done-summary">
+                <!-- Built by JS -->
+            </div>
+            <div style="display:flex;gap:12px;justify-content:center;">
+                <a href="/dashboard" class="wiz-btn wiz-btn-primary">← Back to Dashboard</a>
+                <button class="wiz-btn wiz-btn-secondary" onclick="goToStep(1)">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- ══════════════ SLOT-CAP MODAL ══════════════ -->
+<div class="wiz-modal-overlay" id="slot-cap-modal">
+    <div class="wiz-modal">
+        <div class="wiz-modal-title">You've reached the 3-Persona limit.</div>
+        <div class="wiz-modal-desc">Pick one to overwrite, or cancel.</div>
+        <div id="slot-cap-options">
+            <!-- Built by JS -->
+        </div>
+        <div class="wiz-modal-actions">
+            <button class="wiz-btn wiz-btn-secondary" onclick="closeSlotCapModal()">Cancel</button>
+            <button class="wiz-btn wiz-btn-danger" onclick="confirmOverwrite()">Overwrite Selected</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════ TOAST ══════════════ -->
+<div class="wiz-toast" id="wiz-toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// PETEY Setup Wizard — Client-Side Logic
+// ══════════════════════════════════════════════════════════
+
+const SERVER_ID = "{{ server_id }}";
+const TEXT_CHANNELS = {{ text_channels | tojson }};
+
+const STEP_LABELS = ['Welcome', 'Persona', 'Personality', 'Behavior', 'Proactive', 'Channels', 'Safety', 'Review'];
+const ALL_TRAITS = ['Sarcastic', 'Formal', 'Encouraging', 'Witty', 'Blunt', 'Supportive', 'Philosophical', 'Crass', 'Paternal'];
+const PERSONA_TAB_STEPS = [2, 3, 4, 5, 6, 7, 8]; // Steps that show the persona tab strip
+
+let wizardData = {
+    personas: [],
+    global_settings: {},
+    persona_channel_map: {},
+    custom_presets: [],
+    presets: {}
+};
+
+let currentStep = 1;
+let activePersonaSlot = 1;
+let slotCapOverwriteTarget = null;
+
+// ── Init ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    buildStepper();
+    await loadWizardData();
+    buildPresetGrid();
+    buildTraitChips();
+    bindSliders();
+    bindRadioGroups();
+    buildChannelList();
+    goToStep(1);
+});
+
+async function loadWizardData() {
+    try {
+        const res = await fetch(`/api/wizard/${SERVER_ID}`);
+        if (!res.ok) throw new Error('Failed to load');
+        wizardData = await res.json();
+    } catch (e) {
+        console.error('Failed to load wizard config:', e);
+        toast('Failed to load configuration', true);
+    }
+}
+
+// ── Navigation ────────────────────────────────────────────
+function goToStep(step) {
+    // Save current persona state before switching
+    if (currentStep >= 2 && currentStep <= 7) {
+        savePersonaStateFromUI();
+    }
+
+    currentStep = step;
+
+    // Show/hide panels
+    document.querySelectorAll('.wiz-step-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById(`step-${step}`);
+    if (panel) panel.classList.add('active');
+
+    // Update stepper
+    updateStepper();
+
+    // Show/hide persona tabs
+    const showTabs = PERSONA_TAB_STEPS.includes(step);
+    document.getElementById('wiz-persona-tabs').style.display = showTabs ? 'flex' : 'none';
+    if (showTabs) buildPersonaTabs();
+
+    // Populate step with current persona data
+    if (step >= 2 && step <= 7) {
+        loadPersonaStateToUI();
+    }
+    if (step === 4) buildBehaviorStep();
+    if (step === 5) buildProactiveStep();
+    if (step === 8) buildReviewStep();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Stepper ───────────────────────────────────────────────
+function buildStepper() {
+    const container = document.getElementById('wiz-stepper');
+    container.innerHTML = '';
+    STEP_LABELS.forEach((label, i) => {
+        if (i > 0) {
+            const conn = document.createElement('div');
+            conn.className = 'wiz-step-connector';
+            conn.id = `connector-${i}`;
+            container.appendChild(conn);
+        }
+        const item = document.createElement('div');
+        item.className = 'wiz-step-item';
+        item.id = `stepper-${i + 1}`;
+        item.onclick = () => { if (i + 1 <= getMaxVisitedStep()) goToStep(i + 1); };
+        item.innerHTML = `<div class="wiz-step-dot">${i + 1}</div><div class="wiz-step-label">${label}</div>`;
+        container.appendChild(item);
+    });
+}
+
+function getMaxVisitedStep() {
+    // Allow navigating to any step that has been visited or is adjacent
+    return Math.min(currentStep + 1, 8);
+}
+
+function updateStepper() {
+    STEP_LABELS.forEach((_, i) => {
+        const item = document.getElementById(`stepper-${i + 1}`);
+        const conn = document.getElementById(`connector-${i}`);
+        if (!item) return;
+        item.classList.remove('active', 'completed');
+        if (i + 1 === currentStep) item.classList.add('active');
+        else if (i + 1 < currentStep) item.classList.add('completed');
+        if (conn) {
+            conn.classList.remove('completed');
+            if (i + 1 <= currentStep) conn.classList.add('completed');
+        }
+    });
+}
+
+// ── Persona Tab Strip ─────────────────────────────────────
+function buildPersonaTabs() {
+    const container = document.getElementById('wiz-persona-tabs');
+    container.innerHTML = '';
+
+    wizardData.personas.forEach((p, i) => {
+        const tab = document.createElement('div');
+        tab.className = 'wiz-persona-tab' + (p.slot === activePersonaSlot ? ' active' : '');
+        const defaultChip = p.is_default ? '<span class="tab-chip">Default</span>' : '';
+        tab.innerHTML = `${p.name || `Persona ${p.slot}`} ${defaultChip}`;
+        tab.onclick = () => switchPersona(p.slot);
+        container.appendChild(tab);
+    });
+
+    // + New Persona button (if < 3)
+    if (wizardData.personas.length < 3) {
+        const newBtn = document.createElement('div');
+        newBtn.className = 'wiz-persona-tab-new';
+        newBtn.innerHTML = '+ New Persona';
+        newBtn.onclick = addNewPersona;
+        container.appendChild(newBtn);
+    } else {
+        const newBtn = document.createElement('div');
+        newBtn.className = 'wiz-persona-tab-new';
+        newBtn.innerHTML = '+ New Persona';
+        newBtn.onclick = openSlotCapModal;
+        container.appendChild(newBtn);
+    }
+}
+
+function switchPersona(slot) {
+    savePersonaStateFromUI();
+    activePersonaSlot = slot;
+    buildPersonaTabs();
+    loadPersonaStateToUI();
+    if (currentStep === 4) buildBehaviorStep();
+    if (currentStep === 5) buildProactiveStep();
+}
+
+function addNewPersona() {
+    const usedSlots = wizardData.personas.map(p => p.slot);
+    let newSlot = [1, 2, 3].find(s => !usedSlots.includes(s));
+    if (!newSlot) { openSlotCapModal(); return; }
+
+    const newPersona = {
+        slot: newSlot, is_default: false, name: '', avatar_url: '',
+        role_tag: 'Assistant', tagline: '',
+        system_prompt: '', preset_key: '', traits: [],
+        sliders: { tone: 50, verbosity: 50, formality: 50, empathy: 50 },
+        proactive_pct: 0,
+        safety: { use_server_default: true, profanity_filter: 'off', blocked_keywords: [] }
+    };
+    wizardData.personas.push(newPersona);
+    activePersonaSlot = newSlot;
+    buildPersonaTabs();
+    loadPersonaStateToUI();
+}
+
+function getActivePersona() {
+    return wizardData.personas.find(p => p.slot === activePersonaSlot) || wizardData.personas[0];
+}
+
+// ── Save / Load persona state from UI ─────────────────────
+function savePersonaStateFromUI() {
+    const persona = getActivePersona();
+    if (!persona) return;
+
+    // Step 2: Basics
+    const nameInput = document.getElementById('persona-name');
+    if (nameInput) persona.name = nameInput.value.trim();
+    const taglineInput = document.getElementById('persona-tagline');
+    if (taglineInput) persona.tagline = taglineInput.value.trim();
+
+    // Role tag
+    const roleGroup = document.getElementById('persona-role');
+    if (roleGroup) {
+        const sel = roleGroup.querySelector('.wiz-radio-pill.selected');
+        if (sel) persona.role_tag = sel.dataset.val;
+    }
+
+    // Step 3: Personality
+    const promptInput = document.getElementById('persona-prompt');
+    if (promptInput) persona.system_prompt = promptInput.value;
+
+    // Traits
+    const activeTraits = [];
+    document.querySelectorAll('.wiz-trait-chip.active').forEach(c => activeTraits.push(c.textContent.trim()));
+    if (activeTraits.length > 0 || document.getElementById('trait-chips')?.children.length > 0) {
+        persona.traits = activeTraits;
+    }
+
+    // Sliders
+    ['tone', 'verbosity', 'formality', 'empathy'].forEach(key => {
+        const slider = document.getElementById(`slider-${key}`);
+        if (slider) persona.sliders[key] = parseInt(slider.value);
+    });
+
+    // Step 5: Proactiveness (slot 1 only)
+    if (persona.slot === 1) {
+        const proSlider = document.getElementById('proactive-slider');
+        if (proSlider) persona.proactive_pct = parseInt(proSlider.value);
+    }
+
+    // Step 7: Safety
+    const useDefault = document.getElementById('safety-use-default');
+    if (useDefault) persona.safety.use_server_default = useDefault.checked;
+
+    const profGroup = document.getElementById('profanity-filter');
+    if (profGroup) {
+        const sel = profGroup.querySelector('.wiz-radio-pill.selected');
+        if (sel) persona.safety.profanity_filter = sel.dataset.val;
+    }
+    const blockedInput = document.getElementById('blocked-keywords');
+    if (blockedInput) {
+        persona.safety.blocked_keywords = blockedInput.value.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    // Global settings
+    const maxReplies = document.getElementById('global-max-replies');
+    if (maxReplies) wizardData.global_settings.max_replies_per_hour = parseInt(maxReplies.value) || 30;
+    const tokenBudget = document.getElementById('global-token-budget');
+    if (tokenBudget) wizardData.global_settings.daily_token_budget = parseInt(tokenBudget.value) || 50000;
+
+    // Cooldowns
+    const cooldown = document.getElementById('proactive-cooldown');
+    if (cooldown) wizardData.global_settings.proactive_cooldown_minutes = parseInt(cooldown.value) || 15;
+    const maxHr = document.getElementById('proactive-max-hr');
+    if (maxHr) wizardData.global_settings.proactive_max_per_hour = parseInt(maxHr.value) || 6;
+
+    // Channel map (step 6)
+    saveChannelMapFromUI();
+}
+
+function loadPersonaStateToUI() {
+    const persona = getActivePersona();
+    if (!persona) return;
+
+    // Update subtitles
+    const pLabel = persona.name || `Persona ${persona.slot}`;
+    const defaultTag = persona.is_default ? ' (Default)' : '';
+    document.querySelectorAll('[id^="step"][id$="-subtitle"]').forEach(el => {
+        // Replace persona reference in subtitle
+    });
+
+    // Step 2: Basics
+    const nameInput = document.getElementById('persona-name');
+    if (nameInput) nameInput.value = persona.name || '';
+    const taglineInput = document.getElementById('persona-tagline');
+    if (taglineInput) taglineInput.value = persona.tagline || '';
+
+    // Default badge
+    const badge = document.getElementById('persona-default-badge');
+    if (badge) badge.style.display = persona.is_default ? 'flex' : 'none';
+
+    // Copy from P1 button
+    const copyBtn = document.getElementById('copy-from-p1-btn');
+    if (copyBtn) copyBtn.style.display = persona.slot !== 1 ? 'block' : 'none';
+
+    // Role
+    selectRadioPill('persona-role', persona.role_tag || 'Assistant');
+
+    // Step 3: Personality
+    const promptInput = document.getElementById('persona-prompt');
+    if (promptInput) {
+        promptInput.value = persona.system_prompt || '';
+        updateCharCount();
+    }
+
+    // Preset highlight
+    document.querySelectorAll('.wiz-preset-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.key === persona.preset_key);
+    });
+
+    // Traits
+    document.querySelectorAll('.wiz-trait-chip').forEach(c => {
+        c.classList.toggle('active', (persona.traits || []).includes(c.textContent.trim()));
+    });
+
+    // Sliders
+    ['tone', 'verbosity', 'formality', 'empathy'].forEach(key => {
+        const slider = document.getElementById(`slider-${key}`);
+        const valEl = document.getElementById(`val-${key}`);
+        if (slider && persona.sliders) {
+            slider.value = persona.sliders[key] || 50;
+            if (valEl) valEl.textContent = slider.value;
+        }
+    });
+
+    // Step 7: Safety
+    const useDefault = document.getElementById('safety-use-default');
+    if (useDefault) useDefault.checked = persona.safety?.use_server_default !== false;
+    selectRadioPill('profanity-filter', persona.safety?.profanity_filter || 'off');
+    const blockedInput = document.getElementById('blocked-keywords');
+    if (blockedInput) blockedInput.value = (persona.safety?.blocked_keywords || []).join(', ');
+
+    // Global settings
+    const maxReplies = document.getElementById('global-max-replies');
+    if (maxReplies) maxReplies.value = wizardData.global_settings.max_replies_per_hour || 30;
+    const tokenBudget = document.getElementById('global-token-budget');
+    if (tokenBudget) tokenBudget.value = wizardData.global_settings.daily_token_budget || 50000;
+}
+
+// ── Radio pill helper ─────────────────────────────────────
+function selectRadioPill(groupId, value) {
+    const group = document.getElementById(groupId);
+    if (!group) return;
+    group.querySelectorAll('.wiz-radio-pill').forEach(pill => {
+        pill.classList.toggle('selected', pill.dataset.val === value);
+    });
+}
+
+function bindRadioGroups() {
+    document.querySelectorAll('.wiz-radio-group').forEach(group => {
+        group.querySelectorAll('.wiz-radio-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                group.querySelectorAll('.wiz-radio-pill').forEach(p => p.classList.remove('selected'));
+                pill.classList.add('selected');
+            });
+        });
+    });
+}
+
+// ── Preset grid ───────────────────────────────────────────
+function buildPresetGrid() {
+    const grid = document.getElementById('preset-grid');
+    grid.innerHTML = '';
+
+    // Built-in presets
+    for (const [key, preset] of Object.entries(wizardData.presets || {})) {
+        const card = document.createElement('div');
+        card.className = 'wiz-preset-card';
+        card.dataset.key = key;
+        card.innerHTML = `<div class="wiz-preset-icon">${preset.icon}</div><div class="wiz-preset-name">${preset.name}</div>`;
+        card.onclick = () => applyPreset(key);
+        grid.appendChild(card);
+    }
+
+    // Custom presets from legacy
+    (wizardData.custom_presets || []).forEach((cp, i) => {
+        const card = document.createElement('div');
+        card.className = 'wiz-preset-card';
+        card.dataset.key = `custom_${i}`;
+        card.innerHTML = `<div class="wiz-preset-icon">⚙️</div><div class="wiz-preset-name">${cp.name}</div>`;
+        card.onclick = () => applyCustomPreset(i);
+        grid.appendChild(card);
+    });
+}
+
+function applyPreset(key) {
+    const preset = wizardData.presets[key];
+    if (!preset) return;
+
+    const persona = getActivePersona();
+    persona.system_prompt = preset.system_prompt;
+    persona.traits = [...(preset.traits || [])];
+    persona.sliders = { ...(preset.sliders || { tone: 50, verbosity: 50, formality: 50, empathy: 50 }) };
+    persona.preset_key = key;
+    if (!persona.name) persona.name = preset.name;
+
+    loadPersonaStateToUI();
+}
+
+function applyCustomPreset(index) {
+    const cp = wizardData.custom_presets[index];
+    if (!cp) return;
+
+    const persona = getActivePersona();
+    persona.system_prompt = cp.prompt;
+    persona.preset_key = `custom_${index}`;
+    if (!persona.name) persona.name = cp.name;
+
+    loadPersonaStateToUI();
+}
+
+// ── Trait chips ───────────────────────────────────────────
+function buildTraitChips() {
+    const container = document.getElementById('trait-chips');
+    container.innerHTML = '';
+    ALL_TRAITS.forEach(trait => {
+        const chip = document.createElement('div');
+        chip.className = 'wiz-trait-chip';
+        chip.textContent = trait;
+        chip.onclick = () => {
+            chip.classList.toggle('active');
+            // Clear preset selection on manual edit
+            const persona = getActivePersona();
+            if (persona) persona.preset_key = '';
+            document.querySelectorAll('.wiz-preset-card').forEach(c => c.classList.remove('selected'));
+        };
+        container.appendChild(chip);
+    });
+}
+
+// ── Sliders ───────────────────────────────────────────────
+function bindSliders() {
+    ['tone', 'verbosity', 'formality', 'empathy'].forEach(key => {
+        const slider = document.getElementById(`slider-${key}`);
+        const valEl = document.getElementById(`val-${key}`);
+        if (slider && valEl) {
+            slider.addEventListener('input', () => {
+                valEl.textContent = slider.value;
+                // Clear preset on manual slider change
+                const persona = getActivePersona();
+                if (persona) persona.preset_key = '';
+                document.querySelectorAll('.wiz-preset-card').forEach(c => c.classList.remove('selected'));
+            });
+        }
+    });
+
+    // Char count for prompt
+    const prompt = document.getElementById('persona-prompt');
+    if (prompt) {
+        prompt.addEventListener('input', () => {
+            updateCharCount();
+            // Clear preset on manual prompt edit
+            const persona = getActivePersona();
+            if (persona) persona.preset_key = '';
+            document.querySelectorAll('.wiz-preset-card').forEach(c => c.classList.remove('selected'));
+        });
+    }
+}
+
+function updateCharCount() {
+    const prompt = document.getElementById('persona-prompt');
+    const counter = document.getElementById('prompt-chars');
+    if (prompt && counter) counter.textContent = prompt.value.length;
+}
+
+// ── Behavior Q&A (Step 4) ─────────────────────────────────
+const BEHAVIOR_QUESTIONS = [
+    { q: 'Should this Persona reply when not directly pinged?', yes: 'Yes, sometimes', no: 'Only when mentioned' },
+    { q: 'Should it start conversations in idle channels?', yes: 'Yes, when relevant', no: 'No, never' },
+    { q: 'Should it react with emojis to messages?', yes: 'Yes, when fitting', no: 'No' },
+    { q: 'Should it flag or moderate content unprompted?', yes: 'Yes, in mod channels', no: 'Never' },
+    { q: 'Should it always reply to anyone using a slash command?', yes: 'Yes', no: 'No' },
+];
+
+function buildBehaviorStep() {
+    const container = document.getElementById('behavior-qa-content');
+    const persona = getActivePersona();
+
+    if (persona.slot !== 1) {
+        // Slots 2/3: locked card
+        container.innerHTML = `
+            <div class="wiz-lock-card">
+                <div class="wiz-lock-icon">ℹ️</div>
+                <div class="wiz-lock-text">
+                    <strong>${persona.name || 'Persona ' + persona.slot}</strong> is reactive-only by default — it only replies when
+                    directly mentioned, pinged, or commanded.<br><br>
+                    You can unlock its own behavior Q&A in Advanced settings later.
+                </div>
+            </div>`;
+        return;
+    }
+
+    // Slot 1: full Q&A
+    const answers = persona._behavior_answers || [null, null, null, null, null];
+
+    let html = '<div class="wiz-card"><div class="wiz-card-title">Behavior Questions</div><div class="wiz-qa-list">';
+    BEHAVIOR_QUESTIONS.forEach((bq, i) => {
+        const yesSelected = answers[i] === true ? 'selected' : '';
+        const noSelected = answers[i] === false ? 'selected' : '';
+        html += `
+            <div class="wiz-qa-item">
+                <div class="wiz-qa-question">${i + 1}. ${bq.q}</div>
+                <div class="wiz-qa-options">
+                    <div class="wiz-radio-pill ${yesSelected}" onclick="setBehaviorAnswer(${i}, true, this)">${bq.yes}</div>
+                    <div class="wiz-radio-pill ${noSelected}" onclick="setBehaviorAnswer(${i}, false, this)">${bq.no}</div>
+                </div>
+            </div>`;
+    });
+    html += '</div></div>';
+
+    // Result card
+    const mode = computeBehaviorMode(answers);
+    html += `
+        <div class="wiz-qa-result">
+            <div class="wiz-qa-result-label">Suggested: ${mode.label}</div>
+            <div class="wiz-qa-result-desc">${mode.desc}</div>
+        </div>`;
+
+    container.innerHTML = html;
+}
+
+function setBehaviorAnswer(index, value, el) {
+    const persona = getActivePersona();
+    if (!persona._behavior_answers) persona._behavior_answers = [null, null, null, null, null];
+    persona._behavior_answers[index] = value;
+
+    // Update pill selection
+    const item = el.closest('.wiz-qa-item');
+    item.querySelectorAll('.wiz-radio-pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+
+    // Recalculate
+    buildBehaviorStep();
+}
+
+function computeBehaviorMode(answers) {
+    const yesCount = answers.filter(a => a === true).length;
+    if (yesCount >= 4) return { label: 'Highly Proactive', desc: 'Actively initiates, moderates, and reacts.', pct: 75 };
+    if (yesCount >= 3) return { label: 'Proactive', desc: 'Joins conversations and reacts when fitting.', pct: 50 };
+    if (yesCount >= 1) return { label: 'Lightly Proactive', desc: 'Emoji reactions + occasional acknowledgements.', pct: 25 };
+    return { label: 'Reactive', desc: 'Only responds when directly mentioned.', pct: 0 };
+}
+
+// ── Proactiveness (Step 5) ────────────────────────────────
+function buildProactiveStep() {
+    const container = document.getElementById('proactive-content');
+    const persona = getActivePersona();
+
+    if (persona.slot !== 1) {
+        const gs = wizardData.global_settings;
+        container.innerHTML = `
+            <div class="wiz-lock-card">
+                <div class="wiz-lock-icon">🔒</div>
+                <div class="wiz-lock-text">
+                    <strong>Proactiveness is owned by Persona 1 (Default).</strong><br><br>
+                    ${persona.name || 'Persona ' + persona.slot} will not post or reply without being mentioned.<br>
+                    Server-wide cooldowns still apply:<br>
+                    • Min minutes between proactive actions: <strong>${gs.proactive_cooldown_minutes || 15}</strong><br>
+                    • Max proactive replies/hour: <strong>${gs.proactive_max_per_hour || 6}/hr</strong>
+                </div>
+            </div>`;
+        return;
+    }
+
+    const pct = persona.proactive_pct || 0;
+    const gs = wizardData.global_settings;
+    const pctLabel = getProactiveLabel(pct);
+
+    container.innerHTML = `
+        <div class="wiz-card">
+            <div class="wiz-card-title">How often should this Persona act on its own?</div>
+            <div class="wiz-proactive-slider">
+                <div class="wiz-proactive-labels">
+                    <span>Only when mentioned</span>
+                    <span>Always on</span>
+                </div>
+                <div class="wiz-proactive-track">
+                    <input type="range" id="proactive-slider" min="0" max="100" step="5" value="${pct}">
+                </div>
+                <div class="wiz-proactive-value" id="proactive-value">${pct}%</div>
+                <div class="wiz-proactive-hint" id="proactive-hint">${pctLabel}</div>
+            </div>
+        </div>
+
+        <div class="wiz-card">
+            <div class="wiz-card-title">Cooldowns (Server-Global)</div>
+            <div class="wiz-form-row">
+                <div class="wiz-form-group">
+                    <label class="wiz-label">Min minutes between proactive actions / channel</label>
+                    <input type="number" class="wiz-input" id="proactive-cooldown" value="${gs.proactive_cooldown_minutes || 15}" min="1" max="120">
+                </div>
+                <div class="wiz-form-group">
+                    <label class="wiz-label">Max proactive replies / hour (server-wide)</label>
+                    <input type="number" class="wiz-input" id="proactive-max-hr" value="${gs.proactive_max_per_hour || 6}" min="1" max="60">
+                </div>
+            </div>
+            <div class="wiz-info-card" style="margin-top:8px;">
+                <span class="wiz-info-icon">💡</span>
+                <span class="wiz-info-text" id="proactive-estimate">At ${pct}% with a ${gs.proactive_cooldown_minutes || 15}-min cooldown, expect ~${estimateReplies(pct, gs.proactive_cooldown_minutes || 15)} self-initiated replies per quiet hour across ALL Personas.</span>
+            </div>
+        </div>`;
+
+    // Bind slider
+    const slider = document.getElementById('proactive-slider');
+    slider.addEventListener('input', () => {
+        const val = parseInt(slider.value);
+        document.getElementById('proactive-value').textContent = val + '%';
+        document.getElementById('proactive-hint').textContent = getProactiveLabel(val);
+        const cd = parseInt(document.getElementById('proactive-cooldown').value) || 15;
+        document.getElementById('proactive-estimate').textContent =
+            `At ${val}% with a ${cd}-min cooldown, expect ~${estimateReplies(val, cd)} self-initiated replies per quiet hour across ALL Personas.`;
+    });
+}
+
+function getProactiveLabel(pct) {
+    if (pct === 0) return 'Reactive — only when mentioned';
+    if (pct <= 15) return 'Rarely — very occasional';
+    if (pct <= 30) return 'Occasional — light participation';
+    if (pct <= 55) return 'Balanced — moderate engagement';
+    if (pct <= 80) return 'Engaged — active participation';
+    return 'Always On — responds to everything';
+}
+
+function estimateReplies(pct, cooldownMin) {
+    if (pct === 0) return '0';
+    const repliesPerHr = 60 / cooldownMin;
+    const estimate = Math.round(repliesPerHr * (pct / 100) * 10) / 10;
+    return estimate < 1 ? '< 1' : `${Math.round(estimate)}`;
+}
+
+// ── Channel list (Step 6) ─────────────────────────────────
+function buildChannelList() {
+    const container = document.getElementById('channel-list');
+    container.innerHTML = '';
+
+    TEXT_CHANNELS.forEach(ch => {
+        const row = document.createElement('div');
+        row.className = 'wiz-channel-row';
+
+        const name = document.createElement('span');
+        name.className = 'wiz-channel-name';
+        name.textContent = ch.name;
+
+        const select = document.createElement('select');
+        select.className = 'wiz-select wiz-channel-select';
+        select.dataset.channelId = ch.id;
+
+        // Options
+        select.innerHTML = `<option value="disabled">● Disabled</option>`;
+        wizardData.personas.forEach(p => {
+            const defaultTag = p.is_default ? ' (Default)' : '';
+            const pName = p.name || `Persona ${p.slot}`;
+            select.innerHTML += `<option value="${p.slot}">Persona ${p.slot}${defaultTag} — ${pName}</option>`;
+        });
+
+        // Set current value
+        const currentSlot = wizardData.persona_channel_map[ch.id];
+        if (currentSlot !== undefined && currentSlot !== null) {
+            select.value = String(currentSlot);
+        } else {
+            select.value = '1'; // default to persona 1
+        }
+
+        row.appendChild(name);
+        row.appendChild(select);
+        container.appendChild(row);
+    });
+}
+
+function saveChannelMapFromUI() {
+    const map = {};
+    document.querySelectorAll('.wiz-channel-select').forEach(sel => {
+        const chId = sel.dataset.channelId;
+        const val = sel.value;
+        if (val !== 'disabled') {
+            map[chId] = parseInt(val);
+        }
+    });
+    wizardData.persona_channel_map = map;
+}
+
+// ── AI Reword ─────────────────────────────────────────────
+async function rewordPrompt(style) {
+    const promptEl = document.getElementById('persona-prompt');
+    const current = promptEl.value.trim();
+    if (!current) { toast('Write a prompt first!', true); return; }
+
+    const metaMap = {
+        funnier: 'Rewrite this system prompt to be funnier and more playful while keeping the core instructions intact. Only output the final prompt.',
+        serious: 'Rewrite this system prompt to be more serious and professional while keeping the core instructions intact. Only output the final prompt.',
+        concise: 'Rewrite this system prompt to be more concise — cut the fat, keep the meaning. Only output the final prompt.',
+        elaborate: 'Rewrite this system prompt to be more detailed and elaborate, adding examples and depth. Only output the final prompt.'
+    };
+
+    toast('✏️ Rewriting prompt...');
+    try {
+        const res = await fetch(`/api/reword_prompt/${SERVER_ID}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: current + '\n\nInstruction: ' + metaMap[style] })
+        });
+        const data = await res.json();
+        if (data.enhanced_prompt) {
+            promptEl.value = data.enhanced_prompt;
+            updateCharCount();
+            toast('✅ Prompt reworded!');
+        } else {
+            toast(data.error || 'Reword failed', true);
+        }
+    } catch (e) {
+        toast('Failed to reword', true);
+    }
+}
+
+function copyFromPersona1() {
+    const p1 = wizardData.personas.find(p => p.slot === 1);
+    if (!p1) return;
+    const promptEl = document.getElementById('persona-prompt');
+    if (promptEl) {
+        promptEl.value = p1.system_prompt || '';
+        updateCharCount();
+        toast('📋 Copied from Persona 1');
+    }
+}
+
+// ── Review (Step 8) ───────────────────────────────────────
+function buildReviewStep() {
+    savePersonaStateFromUI();
+
+    const persona = getActivePersona();
+    const card = document.getElementById('review-persona-card');
+
+    const traits = (persona.traits || []).map(t => `<span class="wiz-review-trait-chip">${t}</span>`).join('');
+    const pLabel = persona.slot === 1 ? `Proactive ${persona.proactive_pct || 0}%` : 'Reactive only';
+
+    // Count channels assigned to this persona
+    const chCount = Object.values(wizardData.persona_channel_map).filter(s => s === persona.slot).length;
+    const chNames = TEXT_CHANNELS
+        .filter(ch => wizardData.persona_channel_map[ch.id] === persona.slot)
+        .map(ch => '#' + ch.name)
+        .join(', ') || '(none explicitly — default fallback)';
+
+    card.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="font-size:2rem;">${persona.preset_key ? (wizardData.presets[persona.preset_key]?.icon || '🤖') : '🤖'}</div>
+            <div>
+                <div style="font-size:1.2rem;font-weight:700;color:var(--wiz-text-bright);">${persona.name || 'Persona ' + persona.slot}</div>
+                <div style="font-size:0.85rem;color:var(--wiz-text-muted);">${persona.role_tag}${persona.is_default ? ' · Default' : ''}</div>
+                ${persona.tagline ? `<div style="font-size:0.85rem;color:var(--wiz-text-muted);font-style:italic;margin-top:2px;">"${persona.tagline}"</div>` : ''}
+            </div>
+        </div>
+        <div class="wiz-review-grid">
+            <div class="wiz-review-section">
+                <div class="wiz-review-section-title">Personality</div>
+                <div class="wiz-review-traits">${traits || '<span style="color:var(--wiz-text-muted)">No traits selected</span>'}</div>
+            </div>
+            <div class="wiz-review-section">
+                <div class="wiz-review-section-title">Behavior</div>
+                <div class="wiz-review-value">${pLabel}</div>
+            </div>
+            <div class="wiz-review-section">
+                <div class="wiz-review-section-title">Channels</div>
+                <div class="wiz-review-value">${chNames}</div>
+            </div>
+            <div class="wiz-review-section">
+                <div class="wiz-review-section-title">Safety</div>
+                <div class="wiz-review-value">${persona.safety?.use_server_default ? 'Server default' : persona.safety?.profanity_filter + ' filter'}</div>
+            </div>
+        </div>
+        <div class="wiz-review-section" style="margin-top:12px;">
+            <div class="wiz-review-section-title">System Prompt Preview</div>
+            <div style="background:var(--wiz-surface);padding:12px;border-radius:8px;font-size:0.85rem;color:var(--wiz-text-muted);max-height:120px;overflow-y:auto;white-space:pre-wrap;">${(persona.system_prompt || '').substring(0, 500)}${(persona.system_prompt || '').length > 500 ? '...' : ''}</div>
+        </div>`;
+
+    // All-personas table
+    const tbody = document.getElementById('review-all-tbody');
+    tbody.innerHTML = '';
+    wizardData.personas.forEach(p => {
+        const icon = p.preset_key ? (wizardData.presets[p.preset_key]?.icon || '🤖') : '🤖';
+        const pName = p.name || `Persona ${p.slot}`;
+        const slotLabel = p.is_default ? `${p.slot} (D)` : String(p.slot);
+        const chs = TEXT_CHANNELS
+            .filter(ch => wizardData.persona_channel_map[ch.id] === p.slot)
+            .map(ch => '#' + ch.name).join(', ') || (p.is_default ? '(default fallback)' : '—');
+        const behavior = p.slot === 1 ? `Proactive ${p.proactive_pct || 0}%` : 'Reactive only';
+        const safety = p.safety?.use_server_default ? 'Default' : p.safety?.profanity_filter;
+
+        tbody.innerHTML += `<tr>
+            <td>${icon} ${pName}</td>
+            <td>${slotLabel}</td>
+            <td>${chs}</td>
+            <td>${behavior}</td>
+            <td>${safety}</td>
+        </tr>`;
+    });
+}
+
+// ── Save ──────────────────────────────────────────────────
+async function saveAll() {
+    savePersonaStateFromUI();
+
+    const payload = {
+        personas: wizardData.personas.map(p => {
+            // Clean up internal fields
+            const clean = { ...p };
+            delete clean._behavior_answers;
+            return clean;
+        }),
+        global_settings: wizardData.global_settings,
+        persona_channel_map: wizardData.persona_channel_map
+    };
+
+    try {
+        const res = await fetch(`/api/wizard/${SERVER_ID}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            showDoneScreen();
+        } else {
+            toast(data.error || 'Save failed', true);
+        }
+    } catch (e) {
+        toast('Failed to save', true);
+    }
+}
+
+async function saveAndExit() {
+    savePersonaStateFromUI();
+
+    const payload = {
+        personas: wizardData.personas.map(p => {
+            const clean = { ...p };
+            delete clean._behavior_answers;
+            return clean;
+        }),
+        global_settings: wizardData.global_settings,
+        persona_channel_map: wizardData.persona_channel_map
+    };
+
+    try {
+        const res = await fetch(`/api/wizard/${SERVER_ID}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            toast('✅ Saved!');
+            setTimeout(() => window.location.href = '/dashboard', 1000);
+        } else {
+            toast(data.error || 'Save failed', true);
+        }
+    } catch (e) {
+        toast('Failed to save', true);
+    }
+}
+
+function showDoneScreen() {
+    document.querySelectorAll('.wiz-step-panel').forEach(p => p.classList.remove('active'));
+    const done = document.getElementById('step-done');
+    done.style.display = 'block';
+    done.classList.add('active');
+    document.getElementById('wiz-persona-tabs').style.display = 'none';
+
+    let summary = `<strong>${wizardData.personas[0]?.name || 'PETEY'}</strong> is live with ${wizardData.personas.length} Persona${wizardData.personas.length > 1 ? 's' : ''}:<br><br>`;
+    wizardData.personas.forEach(p => {
+        const icon = p.preset_key ? (wizardData.presets[p.preset_key]?.icon || '🤖') : '🤖';
+        const behavior = p.slot === 1 ? `proactive ${p.proactive_pct || 0}%` : 'reactive';
+        const chs = TEXT_CHANNELS
+            .filter(ch => wizardData.persona_channel_map[ch.id] === p.slot)
+            .map(ch => '#' + ch.name).join(', ');
+        summary += `${icon} <strong>${p.name || 'Persona ' + p.slot}</strong>${p.is_default ? ' (Default)' : ''} — ${behavior}${chs ? ', ' + chs : ''}<br>`;
+    });
+    document.getElementById('done-summary').innerHTML = summary;
+}
+
+function useDefaults() {
+    // Quick setup: apply Friendly Helper preset to Persona 1 and go to review
+    if (!wizardData.personas.length) {
+        wizardData.personas = [makeClientPersona(1)];
+    }
+    const p = wizardData.personas[0];
+    const preset = wizardData.presets?.friendly_helper;
+    if (preset) {
+        p.name = 'Petey';
+        p.system_prompt = preset.system_prompt;
+        p.traits = [...(preset.traits || [])];
+        p.sliders = { ...(preset.sliders || {}) };
+        p.preset_key = 'friendly_helper';
+    }
+    goToStep(8);
+}
+
+function makeClientPersona(slot) {
+    return {
+        slot, is_default: slot === 1, name: '', avatar_url: '',
+        role_tag: 'Assistant', tagline: '',
+        system_prompt: '', preset_key: '', traits: [],
+        sliders: { tone: 50, verbosity: 50, formality: 50, empathy: 50 },
+        proactive_pct: 0,
+        safety: { use_server_default: true, profanity_filter: 'off', blocked_keywords: [] }
+    };
+}
+
+// ── Slot cap modal ────────────────────────────────────────
+function openSlotCapModal() {
+    const modal = document.getElementById('slot-cap-modal');
+    const opts = document.getElementById('slot-cap-options');
+    opts.innerHTML = '';
+    slotCapOverwriteTarget = null;
+
+    wizardData.personas.filter(p => !p.is_default).forEach(p => {
+        const pName = p.name || `Persona ${p.slot}`;
+        const label = document.createElement('label');
+        label.className = 'wiz-radio-pill';
+        label.dataset.val = String(p.slot);
+        label.innerHTML = `<input type="radio" name="overwrite"> Overwrite Persona ${p.slot} — ${pName}`;
+        label.onclick = () => {
+            opts.querySelectorAll('.wiz-radio-pill').forEach(l => l.classList.remove('selected'));
+            label.classList.add('selected');
+            slotCapOverwriteTarget = p.slot;
+        };
+        opts.appendChild(label);
+    });
+
+    modal.classList.add('open');
+}
+
+function closeSlotCapModal() {
+    document.getElementById('slot-cap-modal').classList.remove('open');
+    slotCapOverwriteTarget = null;
+}
+
+function confirmOverwrite() {
+    if (!slotCapOverwriteTarget) { toast('Select a Persona to overwrite', true); return; }
+    const idx = wizardData.personas.findIndex(p => p.slot === slotCapOverwriteTarget);
+    if (idx !== -1) {
+        wizardData.personas[idx] = makeClientPersona(slotCapOverwriteTarget);
+    }
+    activePersonaSlot = slotCapOverwriteTarget;
+    closeSlotCapModal();
+    buildPersonaTabs();
+    loadPersonaStateToUI();
+    toast(`Persona ${slotCapOverwriteTarget} reset — ready to configure`);
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg, isError = false) {
+    const el = document.getElementById('wiz-toast');
+    el.textContent = msg;
+    el.className = 'wiz-toast' + (isError ? ' error' : '');
+    requestAnimationFrame(() => el.classList.add('show'));
+    clearTimeout(el._timeout);
+    el._timeout = setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+
+</body>
+</html>

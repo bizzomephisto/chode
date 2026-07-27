@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petey Creator Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Modern Premium glassmorphic additions for Creator dashboard */
+        .creator-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .creator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: rgba(22, 24, 29, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 24px 32px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .creator-title h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffaa00, #ff5500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .creator-title p {
+            color: #949ba4;
+            margin: 5px 0 0 0;
+            font-size: 0.95rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(22, 24, 29, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 170, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(255, 170, 0, 0.1);
+        }
+
+        .stat-val {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffaa00;
+            line-height: 1;
+            margin-bottom: 8px;
+            text-shadow: 0 0 15px rgba(255, 170, 0, 0.3);
+        }
+
+        .stat-lbl {
+            color: #949ba4;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex-grow: 1;
+            max-width: 450px;
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            background: rgba(22, 24, 29, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: #f2f3f5;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-wrapper input:focus {
+            border-color: #ffaa00;
+            box-shadow: 0 0 0 3px rgba(255, 170, 0, 0.15);
+            background: rgba(22, 24, 29, 0.9);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #949ba4;
+            pointer-events: none;
+            font-size: 1.1rem;
+        }
+
+        .guilds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .guild-card {
+            background: rgba(22, 24, 29, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.25);
+        }
+
+        .guild-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #ffaa00, #ff5500);
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+
+        .guild-card:hover::before {
+            opacity: 1;
+        }
+
+        .guild-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 170, 0, 0.2);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .guild-identity {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .guild-icon-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .guild-icon-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffaa00, #ff5500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #ffffff;
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .guild-names {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .guild-name {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #f2f3f5;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .guild-id {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #949ba4;
+            margin: 4px 0 0 0;
+        }
+
+        .guild-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            gap: 8px;
+        }
+
+        .guild-stat-item {
+            text-align: center;
+        }
+
+        .guild-stat-item .val {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #f2f3f5;
+        }
+
+        .guild-stat-item .lbl {
+            font-size: 0.7rem;
+            color: #949ba4;
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+
+        .guild-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .feature-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #b5bac1;
+            font-size: 0.68rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: capitalize;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #b5bac1;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: #ffaa00;
+        }
+
+        .back-link svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Topbar styling for internal page */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e1f22;
+            height: 60px;
+            padding: 0 24px;
+            border-bottom: 1.5px solid #2b2d31;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: #ffffff;
+            font-size: 1.3rem;
+            letter-spacing: -0.5px;
+        }
+
+        .topbar .logo span {
+            color: #ffaa00;
+        }
+
+        .topbar .user-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar .user-block img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .topbar .user-block span {
+            color: #f2f3f5;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .topbar .logout-btn {
+            background-color: transparent;
+            color: #949ba4;
+            border: 1px solid #3f4248;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .topbar .logout-btn:hover {
+            color: #ffffff;
+            border-color: #f2f3f5;
+        }
+
+        .empty-guilds {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 80px 20px;
+            background: rgba(22, 24, 29, 0.4);
+            border-radius: 16px;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .empty-guilds h3 {
+            color: #f2f3f5;
+            margin-bottom: 8px;
+        }
+
+        .empty-guilds p {
+            color: #949ba4;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body" style="background-color: #111214; font-family: 'Inter', sans-serif;">
+
+    <header class="topbar">
+        <div class="logo">PETEY<span>_CREATOR</span><span style="font-size: 0.4em; background: #ffaa00; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; color: black; font-weight: 700;">ADMIN</span></div>
+        <div class="user-block">
+            <img src="https://cdn.discordapp.com/avatars/{{ user.id }}/{{ user.avatar }}.png" alt="Avatar">
+            <span>{{ user.username }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </header>
+
+    <div class="creator-container">
+        
+        <div style="margin-bottom: 20px;">
+            <a href="/dashboard" class="back-link">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                </svg>
+                Return to Dashboard
+            </a>
+        </div>
+
+        <header class="creator-header">
+            <div class="creator-title">
+                <h1>👑 Petey Command Center</h1>
+                <p>Welcome, Bizzo. Monitoring all active installations across the Discord grid.</p>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-val" id="total-guilds-val">{{ servers|length }}</div>
+                <div class="stat-lbl">Active Servers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="total-users-val">{{ total_users }}</div>
+                <div class="stat-lbl">Users Reached</div>
+            </div>
+        </section>
+
+        <div class="controls-row">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="guild-search" placeholder="Search servers by name or ID..." oninput="filterGuilds()">
+            </div>
+        </div>
+
+        <main class="guilds-grid" id="guilds-grid">
+            {% for server in servers %}
+            <article class="guild-card" data-name="{{ server.name|lower }}" data-id="{{ server.id }}">
+                <div class="guild-identity">
+                    {% if server.icon %}
+                    <img src="https://cdn.discordapp.com/icons/{{ server.id }}/{{ server.icon }}.png" alt="Icon" class="guild-icon-large">
+                    {% else %}
+                    <div class="guild-icon-placeholder">{{ server.name[0] }}</div>
+                    {% endif %}
+                    <div class="guild-names">
+                        <h3 class="guild-name" title="{{ server.name }}">{{ server.name }}</h3>
+                        <p class="guild-id">ID: {{ server.id }}</p>
+                    </div>
+                </div>
+
+                <div class="guild-stats">
+                    <div class="guild-stat-item">
+                        <div class="val">{{ server.approximate_member_count|default('?') }}</div>
+                        <div class="lbl">Members</div>
+                    </div>
+                    <div class="guild-stat-item">
+                        <div class="val">{{ server.approximate_presence_count|default('?') }}</div>
+                        <div class="lbl">Online</div>
+                    </div>
+                </div>
+
+                {% if server.features %}
+                <div class="guild-features">
+                    {% for feature in server.features[:4] %}
+                    <span class="feature-badge">{{ feature.replace('_', ' ') }}</span>
+                    {% endfor %}
+                    {% if server.features|length > 4 %}
+                    <span class="feature-badge">+{{ server.features|length - 4 }} more</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+            
+            {% if not servers %}
+            <div class="empty-guilds">
+                <h3>No active installations</h3>
+                <p>Invite Petey to some Discord servers to see them populate here.</p>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+
+    <script>
+        function filterGuilds() {
+            const query = document.getElementById('guild-search').value.toLowerCase().strip();
+            const cards = document.querySelectorAll('.guild-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                const id = card.getAttribute('data-id');
+                if (name.includes(query) || id.includes(query)) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update stats or show empty state if none visible
+            let emptyMsg = document.getElementById('no-search-results');
+            if (visibleCount === 0 && cards.length > 0) {
+                if (!emptyMsg) {
+                    emptyMsg = document.createElement('div');
+                    emptyMsg.id = 'no-search-results';
+                    emptyMsg.className = 'empty-guilds';
+                    emptyMsg.innerHTML = '<h3>No matching servers found</h3><p>Try refining your search query.</p>';
+                    document.getElementById('guilds-grid').appendChild(emptyMsg);
+                }
+            } else if (emptyMsg) {
+                emptyMsg.remove();
+            }
+        }
+
+        // JS clean up wrapper helper
+        if (!String.prototype.strip) {
+            String.prototype.strip = function () {
+                return this.replace(/^\s+|\s+$/g, '');
+            };
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,23 @@
+PETEY HAS LEVELED UP! Welcome to PETEY v3.1: The Upscaler Update.
+
+🚀 NATIVE SLASH COMMANDS (NEW!)
+PETEY has officially migrated to Discord Slash Commands!
+  • 📲 **Better Discovery** — Type `/` to see a full interactive menu of everything PETEY can do.
+  • 🔎 **AI Upscaling (NEW!)** — Say goodbye to blurry imagery. Use `/upscale` to magically enhance low-resolution images directly in chat!
+  • 📎 **Native Uploads** — Commands like `/upscale`, `/img2img` and `/removebg` feature a native Discord file-picker for easier attachment handling.
+  • 🪄 **Hybrid Mode** — Prefer the old way? `!!prefix` commands still work exactly as before!
+
+🏗️ MODULAR COG ARCHITECTURE
+I've had a complete brain transplant! 
+  • My code is now split into specialized "Cogs" (Media, Music, Admin). This makes me faster, more stable, and easier to update with new features.
+
+🔍 SEARCH & RESEARCH UPGRADES (FIXED!)
+  • 🌎 **Reliable Web Search** — Replaced my old broken web scraper with a professional API. My `/search` command is now 100% reliable and faster than ever.
+  • 🧠 **Mention-Based Research** — You can now @mention me and say *"Look up the price of Bitcoin"* or *"Search for news about space"* and I'll actually browse the live internet to answer you!
+
+🛠️ RELIABILITY & PERFORMANCE
+  • **No More Timeouts** — I now "defer" my responses for long tasks, so Discord won't mark me as "failed" while I'm generating your videos or searching the web.
+  • **Slash Command Syncing** — Added an instant sync system so new features appear in your `/` menu the moment they are deployed.
+
+Still a DJ, still a degenerate, but now significantly more sophisticated.
+- PETEY v3.1 (April 2026)

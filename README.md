@@ -1,37 +1,46 @@
-**UPDATE**
-chode is advancing, will update code soon... thanks
+# Petey
 
+Petey is a modular Discord AI bot with long-term memory, configurable personas,
+media generation tools, music playback, scheduled tasks, and a Flask-based web
+control panel.
 
-**Better instructions coming soon**
+## Setup
 
-Install LMStudio:
-Download LMStudio from `https://lmstudio.ai/`
-Follow the installation steps provided by LMStudio.
+1. Install Python 3.12 or newer and PostgreSQL.
+2. Create and activate a virtual environment.
+3. Install dependencies:
 
-Install ComfyUI: (if you want image generation)
-Go to` https://comfyui.com/` and download ComfyUI.
-Extract the downloaded file and run the installer.
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Choose an LLM (Large Language Model) and download FLUX1 model for image generation:
-For the LLM, you can choose any suitable model like GPT-4 or Claude. Make sure to download the appropriate API keys or credentials.
-Download the FLUX1 model from https://fluxml.com/flux-models.html for use in ComfyUI.
+4. Copy `.env.example` to `.env` and fill in the required credentials.
+5. Start the Discord bot:
 
-Set up Python Environment:
-Install Pyenv (Python version manager) from https://github.com/pyenv/pyenv
-Use pyenv to install Python 3.9 or a newer version
-`pyenv install 3.9.10
-pyenv global 3.9.10`
+   ```bash
+   python main.py
+   ```
 
-Clone the GitHub Project:
-Open your terminal and navigate to the desired directory where you want to clone the project.
-Run the following command to clone the repository:
-`git clone https://github.com/bizzomephisto/CHODE`
-Replace yourusername with your actual GitHub username and yourproject with the name of your project.
+6. Optionally start the web control panel:
 
-Install Project Requirements:
-Navigate into the cloned project directory.
-Run the following command to install the required Python packages:
+   ```bash
+   python run_web.py
+   ```
 
-`pip install -r requirements.txt
-`
-This will install all the necessary dependencies for your project.
+The real `.env`, databases, server configuration, user images, caches, virtual
+environment, and locally bundled FFmpeg executables are intentionally excluded
+from version control.
+
+## Project layout
+
+- `main.py` — Discord bot entry point
+- `chode/` — legacy internal Python package containing Petey's bot services and cogs
+- `web/` — web control panel
+- `generate_codes.py` — invite-code utility
+
+The internal package keeps its legacy name for import compatibility; the public
+project and bot are named Petey.
+
+## License
+
+This project is available under the terms in [LICENSE](LICENSE).
