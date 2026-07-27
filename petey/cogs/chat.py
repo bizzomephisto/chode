@@ -5,7 +5,7 @@ import aiohttp
 import discord
 import random
 from discord.ext import commands
-from chode import config, database, gemini_api, utils, flow_engine
+from petey import config, database, gemini_api, utils, flow_engine
 import traceback
 
 class ChatCog(commands.Cog, name="Chat"):
@@ -275,7 +275,7 @@ class ChatCog(commands.Cog, name="Chat"):
                         if any(fn.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".webp", ".gif"]) or (att.content_type and att.content_type.startswith("image/")):
                             try:
                                 print(f"[IMAGE-TO-TEXT] Processing image {att.filename}...")
-                                from chode.deapi_client import deapi
+                                from petey.deapi_client import deapi
                                 image_bytes = await att.read()
                                 extracted_text = await deapi.image_to_text(image_bytes, guild_id=message.guild.id if message.guild else None)
                                 if extracted_text:

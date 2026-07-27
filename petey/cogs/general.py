@@ -1,7 +1,7 @@
 import asyncio
 import discord
 from discord.ext import commands
-from chode import config, gemini_api, utils
+from petey import config, gemini_api, utils
 import traceback
 
 

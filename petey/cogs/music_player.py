@@ -2,12 +2,12 @@ import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
-from chode import music, utils
+from petey import music, utils
 import traceback
 
 
 class MusicPlayerCog(commands.Cog, name="Music Player"):
-    """DJ CHODE — YouTube music playback commands."""
+    """DJ PETEY — YouTube music playback commands."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot

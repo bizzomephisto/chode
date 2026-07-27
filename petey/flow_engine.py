@@ -7,7 +7,7 @@ nodes like search, genimg, post, llm_transform, etc.
 
 import asyncio
 import json
-from chode import db as sqlite3
+from petey import db as sqlite3
 import datetime
 import os
 from contextlib import suppress
@@ -75,7 +75,7 @@ async def execute_flow(bot, flow_json: str, trigger_id: str, initial_context: di
 
 async def execute_node(bot, node: dict, context: dict) -> dict | None:
     """Executes a single node and returns the updated context."""
-    from chode import utils, gemini_api, comfyui
+    from petey import utils, gemini_api, comfyui
     
     n_type = node.get("type")
     data = node.get("data", {})

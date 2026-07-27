@@ -5,7 +5,7 @@ import time
 import json
 import io
 import random
-from chode import config
+from petey import config
 
 class DeapiError(Exception):
     pass
@@ -193,7 +193,7 @@ class DeapiClient:
         
         try:
             import asyncio
-            from chode import gemini_api
+            from petey import gemini_api
             enhanced = await asyncio.to_thread(gemini_api.call_gemini, prompt, system_msg)
             
             if enhanced and not enhanced.startswith("Error") and len(enhanced) > len(prompt):

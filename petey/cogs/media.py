@@ -3,7 +3,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from collections import defaultdict
-from chode import config, database, deapi_client, gemini_api, utils
+from petey import config, database, deapi_client, gemini_api, utils
 import traceback
 import io
 import aiohttp

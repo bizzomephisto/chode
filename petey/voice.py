@@ -2,9 +2,9 @@ import asyncio
 import os
 import aiohttp
 
-async def generate_speech(text: str, output_file: str = "chode_speech.mp3") -> str:
+async def generate_speech(text: str, output_file: str = "petey_speech.mp3") -> str:
     """Generates speech from text using DEAPI and saves it to a file."""
-    # Ensure the output file is saved in the chode directory, next to this script
+    # Ensure the output file is saved in the petey directory, next to this script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     output_path = os.path.join(script_dir, output_file)
     
@@ -15,7 +15,7 @@ async def generate_speech(text: str, output_file: str = "chode_speech.mp3") -> s
         return ""
         
     try:
-        from chode import deapi_client
+        from petey import deapi_client
         result = await deapi_client.deapi.generate_speech(clean_text)
         result_url = result.get("result_url")
         
@@ -136,8 +136,8 @@ from pydub import AudioSegment
 #         if text and text.strip():
 #             print(f"🎙️ [STT] {user.name} said: '{text}'")
 #             
-#             # Simple wake-word check. Since speech recognizers can mishear "chode", we check phonetic neighbors
-#             wake_words = ["chode", "showed", "code", "toad", "chad", "should", "joan", "joe"]
+#             # Simple wake-word check. Since speech recognizers can mishear "petey", we check phonetic neighbors
+#             wake_words = ["petey", "showed", "code", "toad", "chad", "should", "joan", "joe"]
 #             text_lower = text.lower()
 #             
 #             if any(word in text_lower for word in wake_words):

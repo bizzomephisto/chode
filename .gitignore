@@ -18,7 +18,7 @@ venv/
 config_*.json
 chroma_db/
 user_images/
-chode/wiki/
+petey/wiki/
 *.log
 *.mp3
 
@@ -29,4 +29,4 @@ chode/wiki/
 Thumbs.db
 
 # Bundled executables are local deployment artifacts
-chode/ffmpeg/
+petey/ffmpeg/

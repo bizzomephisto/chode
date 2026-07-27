@@ -1,6 +1,7 @@
 import discord
 import asyncio
-from chode import gemini_api
+from petey import gemini_api
+from petey import config
 
 def ordinal(n):
     if 11 <= (n % 100) <= 13:
@@ -144,12 +145,49 @@ _CHANNEL_CATEGORIES = {
 
 async def check_channel_assignment(ctx, category):
     """
-    Bypassed — always returns True to allow command execution in any channel.
+    Enforce the server's configured channel assignment for a command category.
+    Direct messages are not subject to server channel routing.
     """
-    return True
+    allowed, error_message = await check_channel_assignment_raw(
+        ctx.guild, ctx.channel, category
+    )
+    if not allowed and error_message:
+        await ctx.send(error_message)
+    return allowed
 
 async def check_channel_assignment_raw(guild, channel, category):
     """
-    Bypassed — always returns True, None to allow command execution in any channel.
+    Return whether a command category may run in the given server channel.
+
+    Enforcement is opt-in per server. Once enabled, configured categories fail
+    closed when their assigned channel is missing or does not match.
     """
-    return True, None
+    if guild is None or channel is None:
+        return True, None
+
+    server_config = config.load_server_config(guild.id)
+    if not server_config.get("channel_enforcement_enabled", False):
+        return True, None
+
+    friendly_name = _CHANNEL_CATEGORIES.get(category, category.replace("_", " ").title())
+    assignments = server_config.get("channel_assignments", {})
+    assigned_channel_id = str(assignments.get(category, "")).strip()
+
+    if not assigned_channel_id:
+        return (
+            False,
+            f"{friendly_name} commands are disabled until a server administrator "
+            "assigns a channel in the Petey dashboard.",
+        )
+
+    current_channel_ids = {
+        str(getattr(channel, "id", "")),
+        str(getattr(channel, "parent_id", "")),
+    }
+    if assigned_channel_id in current_channel_ids:
+        return True, None
+
+    return (
+        False,
+        f"{friendly_name} commands can only be used in <#{assigned_channel_id}>.",
+    )

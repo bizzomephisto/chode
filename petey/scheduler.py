@@ -1,5 +1,5 @@
 """
-scheduler.py — Chode Scheduled Task Runner
+scheduler.py — Petey Scheduled Task Runner
 -------------------------------------------
 Three task types:
   search   — web search + LLM summary, always posts
@@ -11,7 +11,7 @@ Timezone-aware. Checks every 60 seconds.
 
 import asyncio
 import hashlib
-from chode import db as sqlite3
+from petey import db as sqlite3
 import json
 import datetime
 import os
@@ -164,7 +164,7 @@ def _mark_seen(task_id: int, h: str):
 
 # ── Shared post helper ────────────────────────────────────────────────────────
 async def _send(channel, text: str, suppress_embeds: bool = False):
-    from chode import utils as _utils
+    from petey import utils as _utils
     if len(text) > 2000:
         await _utils.send_long_message(channel, text)
         return
@@ -186,7 +186,7 @@ async def _send(channel, text: str, suppress_embeds: bool = False):
 # Task type: SEARCH
 # ══════════════════════════════════════════════════════════════════════════════
 async def _run_search_task(bot, task: dict, channel):
-    from chode import utils, gemini_api
+    from petey import utils, gemini_api
 
     try:
         results = await utils.perform_web_search(task["search_query"])
@@ -217,7 +217,7 @@ async def _run_search_task(bot, task: dict, channel):
 # Task type: FETCH (RSS)
 # ══════════════════════════════════════════════════════════════════════════════
 async def _run_fetch_task(bot, task: dict, channel):
-    from chode import gemini_api
+    from petey import gemini_api
 
     sources = json.loads(task.get("sources") or "[]")
     suppress_embeds = bool(task.get("suppress_embeds") or 0)
@@ -303,7 +303,7 @@ async def _run_fetch_task(bot, task: dict, channel):
 # Task type: SUMMARIZE
 # ══════════════════════════════════════════════════════════════════════════════
 async def _run_summarize_task(bot, task: dict, channel):
-    from chode import gemini_api
+    from petey import gemini_api
 
     guild = channel.guild
     if not guild:

@@ -1,5 +1,5 @@
 """
-database.py — Chode Memory Module
+database.py — Petey Memory Module
 ----------------------------------
 Handles short-term (SQLite) and long-term (ChromaDB RAG) memory.
 
@@ -10,7 +10,7 @@ All ChromaDB embedding is done in a background thread so the bot never blocks.
 If Gemini or ChromaDB is unavailable, memory still saves to SQLite gracefully.
 """
 
-from chode import db as sqlite3
+from petey import db as sqlite3
 import os
 import asyncio
 import datetime
@@ -169,7 +169,7 @@ def _embed_and_store(row_id: int, server_id: str, channel_id: str,
     Marks the row as embedded on success.
     RAISES exceptions so callers can retry.
     """
-    from chode.gemini_api import get_embedding
+    from petey.gemini_api import get_embedding
     embedding = get_embedding(content)
     if not embedding:
         print(f"[MEMORY] get_embedding returned empty for row {row_id} (content: {content[:60]}...)")
@@ -377,7 +377,7 @@ def search_memories(query: str, server_id, limit: int = 5) -> str:
     print(f"[MEMORY] RAG: Searching for '{query[:80]}' in server_id={server_id}")
 
     try:
-        from chode.gemini_api import get_embedding
+        from petey.gemini_api import get_embedding
         query_embedding = get_embedding(query)
         if not query_embedding:
             print("[MEMORY] RAG: get_embedding returned empty!")

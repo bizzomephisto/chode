@@ -4,10 +4,10 @@ import random
 import string
 import datetime
 
-# Add project root to sys.path to allow importing chode
+# Add project root to sys.path to allow importing petey
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from chode import db as sqlite3
+from petey import db as sqlite3
 
 def generate_codes(count=5):
     try:

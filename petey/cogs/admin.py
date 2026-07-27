@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from chode import config
+from petey import config
 import traceback
 
 
@@ -14,7 +14,7 @@ class AdminCog(commands.Cog, name="Admin"):
     @commands.hybrid_command(name="setup", description="Sets the bot's personality for the server or DMs.")
     @app_commands.describe(personality="The personality prompt for PETEY in this server")
     async def setup(self, ctx: commands.Context, *, personality: str):
-        """Sets the bot's personality for the server or DMs. Requires Owner, CHODEADMIN, or PETEYADMIN role in servers."""
+        """Sets the bot's personality for the server or DMs. Requires Owner or a PETEYADMIN-compatible role."""
         if ctx.guild:
             is_owner = ctx.author == ctx.guild.owner
             is_bizzo = ctx.author.name.lower() == "bizzo"
@@ -31,7 +31,7 @@ class AdminCog(commands.Cog, name="Admin"):
                     print(f"[ERROR] Failed saving server config for {ctx.guild.id}: {e}")
                     traceback.print_exc()
             else:
-                await ctx.send("You do not have permission to use this command here (Requires Server Owner, 'CHODEADMIN', or 'PETEYADMIN' role).")
+                await ctx.send("You do not have permission to use this command here (Requires Server Owner or the 'PETEYADMIN' role).")
         else:
             dm_key = f"DM-{ctx.author.id}"
             try:
@@ -119,13 +119,13 @@ class AdminCog(commands.Cog, name="Admin"):
             await ctx.send(f"❌ This command can only be run in the designated config channel (<#{config_channel}>).")
             return
 
-        # Check permissions: owner or petey_admin / CHODEADMIN / PETEYADMIN roles
+        # CHODEADMIN is retained only as a legacy compatibility alias.
         is_owner = ctx.author == ctx.guild.owner
         is_bizzo = ctx.author.name.lower() == "bizzo"
         has_role = hasattr(ctx.author, 'roles') and any(role.name in ["CHODEADMIN", "PETEYADMIN", "petey_admin"] for role in ctx.author.roles)
 
         if not (is_owner or has_role or is_bizzo):
-            await ctx.send("❌ You do not have permission to run this command (Requires Server Owner, or 'petey_admin' / 'CHODEADMIN' / 'PETEYADMIN' role).")
+            await ctx.send("❌ You do not have permission to run this command (Requires Server Owner or the 'PETEYADMIN' role).")
             return
 
         # Validate file extension
@@ -137,7 +137,7 @@ class AdminCog(commands.Cog, name="Admin"):
         await ctx.defer(ephemeral=False)
 
         try:
-            from chode import database
+            from petey import database
             # Download file content
             file_bytes = await attachment.read()
             

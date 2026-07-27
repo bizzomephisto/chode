@@ -1,6 +1,6 @@
 import discord
 import asyncio
-from chode import utils
+from petey import utils
 import yt_dlp as youtube_dl
 import random
 

@@ -102,7 +102,7 @@ def _http_get_json(url: str, params: dict | None = None, timeout: int = 10):
     if params:
         url = url + ('?' + urllib.parse.urlencode(params))
     req = urllib.request.Request(url, headers={
-        'User-Agent': 'chode-wiki-bot/1.0 (+https://example.local)'
+        'User-Agent': 'petey-wiki-bot/1.0 (+https://example.local)'
     })
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         data = resp.read()

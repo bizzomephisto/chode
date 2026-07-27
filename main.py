@@ -2,9 +2,9 @@ import discord
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
-from chode import scheduler as chode_scheduler
-from chode import database
-from chode import flow_engine as chode_flow_engine
+from petey import scheduler as petey_scheduler
+from petey import database
+from petey import flow_engine as petey_flow_engine
 
 import sys
 import asyncio
@@ -27,11 +27,11 @@ intents.voice_states = True
 
 # Cog extensions to load
 COG_EXTENSIONS = [
-    "chode.cogs.general",
-    "chode.cogs.admin",
-    "chode.cogs.media",
-    "chode.cogs.music_player",
-    "chode.cogs.chat",
+    "petey.cogs.general",
+    "petey.cogs.admin",
+    "petey.cogs.media",
+    "petey.cogs.music_player",
+    "petey.cogs.chat",
 ]
 
 
@@ -64,8 +64,8 @@ bot = PETEYBot(command_prefix=commands.when_mentioned, intents=intents)
 async def on_ready():
     import datetime
     print(f"[{datetime.datetime.utcnow().isoformat()}] Logged in as {bot.user}")
-    chode_scheduler.start_scheduler(bot)
-    chode_flow_engine.start_flow_engine(bot)
+    petey_scheduler.start_scheduler(bot)
+    petey_flow_engine.start_flow_engine(bot)
 
 
 # Run the bot

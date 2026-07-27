@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 try:
-    from chode.database import init_db
+    from petey.database import init_db
     init_db()
 except Exception as e:
     print(f"[WEB] DB init failed: {e}")
@@ -290,9 +290,22 @@ def manage_config(server_id):
                 data = json.load(f)
                 if "config_channel" not in data:
                     data["config_channel"] = ""
+                if "channel_enforcement_enabled" not in data:
+                    data["channel_enforcement_enabled"] = False
+                if "channel_assignments" not in data:
+                    data["channel_assignments"] = {}
                 return jsonify(data)
         except FileNotFoundError:
-            return jsonify({"personality": "You are Petey, a friendly chatbot.", "sleep_enabled": False, "sleep_hour": 3, "sleep_minute": 0, "sleep_timezone": "America/Chicago", "config_channel": ""})
+            return jsonify({
+                "personality": "You are Petey, a friendly chatbot.",
+                "sleep_enabled": False,
+                "sleep_hour": 3,
+                "sleep_minute": 0,
+                "sleep_timezone": "America/Chicago",
+                "config_channel": "",
+                "channel_enforcement_enabled": False,
+                "channel_assignments": {},
+            })
             
     elif request.method == "POST":
         new_config = request.json
@@ -325,7 +338,7 @@ def reword_prompt(server_id):
     )
     
     try:
-        from chode import gemini_api
+        from petey import gemini_api
         enhanced = gemini_api.chat_completion(original_prompt, system_message=meta_prompt)
         return jsonify({"enhanced_prompt": enhanced.strip()})
     except Exception as e:
@@ -345,7 +358,7 @@ def upload_doc(server_id):
         
     if file and (file.filename.endswith('.txt') or file.filename.endswith('.md') or file.filename.endswith('.pdf') or file.filename.endswith('.json')):
         try:
-            from chode import database
+            from petey import database
             
             if file.filename.endswith('.pdf'):
                 try:
@@ -373,7 +386,7 @@ def upload_doc(server_id):
 def get_docs(server_id):
     if "user_token" not in session: return jsonify({"error": "Unauthorized"}), 401
     try:
-        from chode import database
+        from petey import database
         docs = database.get_documents(server_id)
         return jsonify({"documents": docs})
     except Exception as e:
@@ -383,7 +396,7 @@ def get_docs(server_id):
 def delete_doc(server_id, filename):
     if "user_token" not in session: return jsonify({"error": "Unauthorized"}), 401
     try:
-        from chode import database
+        from petey import database
         success = database.delete_document(server_id, filename)
         if success:
             return jsonify({"status": "success"})
@@ -397,7 +410,7 @@ def get_metrics(server_id):
     if "user_token" not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     metrics = {"total_messages": 0, "unique_users": 0, "images_generated": 0}
     try:
@@ -473,7 +486,7 @@ def tasks_page(server_id):
 def get_flows(server_id):
     if "user_token" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -507,7 +520,7 @@ def create_flow(server_id):
     flow_json = json.dumps(flow)
     created_at = datetime.datetime.utcnow().isoformat()
 
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -536,7 +549,7 @@ def update_flow(server_id, flow_id):
 
     flow_json = json.dumps(flow)
 
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -555,7 +568,7 @@ def update_flow(server_id, flow_id):
 def toggle_flow(server_id, flow_id):
     if "user_token" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -578,7 +591,7 @@ def toggle_flow(server_id, flow_id):
 def delete_flow(server_id, flow_id):
     if "user_token" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -593,7 +606,7 @@ def delete_flow(server_id, flow_id):
 def get_tasks(server_id):
     if "user_token" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -638,7 +651,7 @@ def create_task(server_id):
     if task_type == "fetch" and not json.loads(sources):
         return jsonify({"error": "At least one RSS source required for fetch tasks"}), 400
 
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -661,7 +674,7 @@ def create_task(server_id):
 def delete_task(server_id, task_id):
     if "user_token" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -678,7 +691,7 @@ def delete_task(server_id, task_id):
 def toggle_task(server_id, task_id):
     if "user_token" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -716,7 +729,7 @@ def update_task(server_id, task_id):
     timezone     = data.get("timezone", "America/Chicago")
     if not name or not channel_id:
         return jsonify({"error": "name and channel_id are required"}), 400
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -739,7 +752,7 @@ def update_task(server_id, task_id):
 def force_run_task(server_id, task_id):
     if "user_token" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memories.db")
     try:
         conn = _sqlite3.connect(db_path)
@@ -754,7 +767,7 @@ def force_run_task(server_id, task_id):
 # --- EXCLUSIVE BOT INSTALL GATEKEEPER ---
 @app.route("/add_bot/<server_id>", methods=["GET", "POST"])
 def invite_bot(server_id):
-    from chode import db as _sqlite3
+    from petey import db as _sqlite3
     
     if request.method == "POST":
         code = request.form.get("code", "").strip().upper()
@@ -842,7 +855,7 @@ def get_wizard_config(server_id):
     if "user_token" not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
-    from chode.config import make_default_persona, DEFAULT_GLOBAL_SETTINGS, PERSONA_PRESETS
+    from petey.config import make_default_persona, DEFAULT_GLOBAL_SETTINGS, PERSONA_PRESETS
     import copy
 
     config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), f"config_{server_id}.json")
@@ -928,7 +941,7 @@ def save_wizard_config(server_id):
         json.dump(full_config, f, indent=4)
 
     # Bust the config cache so the bot picks up changes immediately
-    from chode.config import _config_cache
+    from petey.config import _config_cache
     _config_cache.pop(str(server_id), None)
 
     return jsonify({"status": "success"})

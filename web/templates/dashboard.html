@@ -231,6 +231,30 @@
                 <label for="config_channel" style="color:var(--text-normal); font-weight:600; font-size:1rem; margin-bottom:4px; display:block;">🔧 Dedicated Config Channel</label>
                 <p class="help-text">The private administration channel where admins configure PETEY and run memory ingestion commands like <code>/ingest</code>.</p>
                 <select id="config_channel" style="width: 100%; max-width: 400px; margin-top: 8px; font-family: inherit; font-size: 0.95rem; padding: 6px 12px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-normal); cursor: pointer;"><option value="">Not Set</option></select>
+
+                <div style="display:flex; align-items:center; gap:12px; margin-top:20px;">
+                    <label class="switch">
+                        <input type="checkbox" id="channel_enforcement_enabled" onchange="toggleEnforcementUI()">
+                        <span class="slider round"></span>
+                    </label>
+                    <strong>Command channel enforcement: <span id="enforcement-label">Off</span></strong>
+                </div>
+                <p class="help-text">When enabled, each command category is restricted to its assigned channel.</p>
+
+                <div id="channel-dropdowns-wrapper" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                    <label>🎨 Media Generation
+                        <select id="channel_media_generation"><option value="">Not Set</option></select>
+                    </label>
+                    <label>🎵 Music
+                        <select id="channel_music"><option value="">Not Set</option></select>
+                    </label>
+                    <label>💬 AI Chat
+                        <select id="channel_chat"><option value="">Not Set</option></select>
+                    </label>
+                    <label>🔍 Research
+                        <select id="channel_research"><option value="">Not Set</option></select>
+                    </label>
+                </div>
             </div>
 
             <div class="setting-group split">
@@ -604,7 +628,14 @@
         }
 
         async function fetchAndPopulateChannels(serverId) {
-            const selects = ['config_channel', 'wizard_config_channel'];
+            const selects = [
+                'config_channel',
+                'wizard_config_channel',
+                'channel_media_generation',
+                'channel_music',
+                'channel_chat',
+                'channel_research'
+            ];
             // Reset all dropdowns to just "Not Set"
             selects.forEach(id => {
                 const sel = document.getElementById(id);
@@ -638,6 +669,14 @@
             if (configChannelSelect) {
                 configChannelSelect.value = currentServerConfig.config_channel || '';
             }
+            const enforcementCheckbox = document.getElementById('channel_enforcement_enabled');
+            enforcementCheckbox.checked = Boolean(currentServerConfig.channel_enforcement_enabled);
+            const assignments = currentServerConfig.channel_assignments || {};
+            ['media_generation', 'music', 'chat', 'research'].forEach(category => {
+                const select = document.getElementById(`channel_${category}`);
+                select.value = assignments[category] || '';
+            });
+            toggleEnforcementUI();
         }
 
         function updateChannelPersonalitiesConfigFromUI() {
@@ -1018,6 +1057,13 @@
                 selected_img2video_model: document.getElementById("selected_img2video_model").value,
                 selected_txt2music_model: document.getElementById("selected_txt2music_model").value,
                 config_channel: document.getElementById("config_channel").value,
+                channel_enforcement_enabled: document.getElementById("channel_enforcement_enabled").checked,
+                channel_assignments: {
+                    media_generation: document.getElementById("channel_media_generation").value,
+                    music: document.getElementById("channel_music").value,
+                    chat: document.getElementById("channel_chat").value,
+                    research: document.getElementById("channel_research").value
+                },
                 channel_personalities: (function() {
                     updateChannelPersonalitiesConfigFromUI();
                     return currentServerConfig.channel_personalities || {};
