@@ -1,0 +1,32 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+envbak/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Runtime data
+*.db
+*.sqlite
+*.sqlite3
+config_*.json
+chroma_db/
+user_images/
+petey/wiki/
+*.log
+*.mp3
+
+# Local tools and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Bundled executables are local deployment artifacts
+petey/ffmpeg/

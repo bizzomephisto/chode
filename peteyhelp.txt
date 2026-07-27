@@ -1,0 +1,36 @@
+**PETEY CORE COMMANDS (v3.1)**
+
+*All commands now support Slash Commands (`/`) but still work with the `!!` prefix.*
+
+**Informational**
+- `/peteyhelp` (or `!!peteyhelp`): Displays this help menu explained by PETEY.
+- `/whatsnew` (or `!!whatsnew`): Shows the latest features and v3.1 migration notes.
+- `/github`: Link to PETEY's open-source repository.
+
+**Utilities**
+- `/search <query>`: Deep web search summarized by AI (Fixed & Upgraded!).
+- `!!sync`: (Admin only) Instant slash command tree synchronization.
+
+**Media Generation (Native Dashboards)**
+- `/genimg <prompt>`: Generate a high-quality AI image.
+- `/img2img <image> <prompt>`: Restyle an image you upload.
+- `/genvid <prompt>`: Create cinematic AI videos.
+- `/img2vid <image> <prompt>`: Animate an image into a video.
+- `/vid2vid <video> <prompt>`: Restyle an existing video.
+- `/removebg <image>`: Strip the background from an image.
+- `/upscale <image>`: AI-enhance and upscale a low-res image.
+- `/genmusic <prompt>`: Compose original AI music.
+- `/speak <text> [voice] [speed]`: Convert text to AI-generated speech audio.
+*(Pro Tip: End any prompt with `++` in the dashboard to auto-enhance it!)*
+
+**DJ PETEY (Music)**
+- `/play <query>`: Search for or queue a YouTube song or playlist.
+- `/pause`: Toggle pause/resume on the current track.
+- `/next`: Skip to the next song.
+- `/prev`: Replay the previous song.
+- `/stop`: End playback and disconnect.
+
+**AI Interaction**
+- **Mention `@PETEY`**: Just talk to me! I have long-term memory.
+- **Research**: Mention `@PETEY` and say "look up" or "search for" something to trigger my internet brain.
+- **GIFs**: I can send GIFs/memes if you ask for them in conversation.

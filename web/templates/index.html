@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petey - Your Discord AI Companion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="landing-page">
+
+    <nav class="landing-nav">
+        <div class="logo">PETEY<span>_AI</span><span style="font-size: 0.4em; background: var(--primary); padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; color: white;">v3.1</span></div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+            <a href="/#about" class="nav-link">Origins</a>
+            <a href="/#features" class="nav-link">Functions</a>
+
+            <a href="/#faq" class="nav-link">FAQ</a>
+            <a href="https://github.com/bizzomephisto/petey" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a>
+            {% if session.get('user_token') %}
+                <a href="/dashboard" class="nav-login-btn">Dashboard</a>
+            {% else %}
+                <a href="/login" class="nav-login-btn">Dashboard Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <header class="hero-section">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <h1>Meet <span>PETEY</span>.</h1>
+                <p class="hero-subtitle">The intelligent, autonomous, and slightly unhinged companion for your Discord server.
+                </p>
+                <div class="hero-actions">
+                    <a href="/login" class="primary-btn">
+                        <svg width="24" height="24" viewBox="0 0 127.14 96.36" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a67.59,67.59,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.2,46,96.12,53,91.08,65.69,84.69,65.69Z" />
+                        </svg>
+                        Log In with Discord
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image-wrapper">
+                <div class="avatar-glow"></div>
+                <img src="{{ url_for('static', filename='petey_avatar.png') }}" alt="PETEY Avatar" class="petey-avatar">
+            </div>
+        </div>
+    </header>
+
+    <section id="about" class="about-section slide-up">
+        <div class="container narrowed">
+            <h2 class="section-title">Origins <span>& History</span></h2>
+            <div class="history-content">
+                <p>Born from the chaotic digital void, PETEY was designed to be more than just a typical utility bot. He
+                    remembers past conversations, learns from server activity, and occasionally roasts the people who
+                    deserve it.</p>
+                <p>Initially deployed as an experimental conversational AI, his functions rapidly expanded to handle
+                    server administration, automated tasks, image generation, and complex web research. Today, he
+                    manages multiple servers, holding grudges and performing tasks with equal efficiency.</p>
+                <p>PETEY is proudly an <strong>open-source project</strong>. Anyone can contribute, fork, and run their own instance. Check out the source code on <a href="https://github.com/bizzomephisto/petey" target="_blank" rel="noopener noreferrer" style="color: var(--primary); font-weight: 600;">GitHub</a>.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features-section">
+        <div class="container">
+            <h2 class="section-title">Core <span>Functions</span></h2>
+            <div class="feature-grid">
+
+                <div class="feature-card slide-up">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Long-Term Memory</h3>
+                    <p>PETEY continuously stores and recalls the context of every conversation in your server using
+                        advanced Retrieval-Augmented Generation (RAG). He never forgets what you said.</p>
+                </div>
+
+                <div class="feature-card slide-up" style="transition-delay: 100ms;">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>Automated Tasks</h3>
+                    <p>Schedule PETEY to perform complex background tasks. Let him scrape RSS feeds, summarize daily
+                        server chatter, or perform scheduled web research while you sleep.</p>
+                </div>
+
+                <div class="feature-card slide-up" style="transition-delay: 200ms;">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Media & Video Generation</h3>
+                    <p>PETEY seamlessly generates state-of-the-art images (`!!genimg`), image transformations (`!!img2img`), and stunning short videos (`!!genvid`) straight from your Discord chat.</p>
+                </div>
+
+                <div class="feature-card slide-up" style="transition-delay: 0ms;">
+                    <div class="feature-icon">🎵</div>
+                    <h3>Voice & AI Music</h3>
+                    <p>Invite PETEY to voice channels to play high-quality music from YouTube... or just use `!!genmusic` to autonomously compose your own original MP3 hit songs from scratch!</p>
+                </div>
+
+                <div class="feature-card slide-up" style="transition-delay: 100ms;">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Autonomous Research</h3>
+                    <p>When asked complex questions, PETEY can independently search the internet, read multiple
+                        articles, and synthesize up-to-date facts in his responses.</p>
+                </div>
+
+                <div class="feature-card slide-up" style="transition-delay: 200ms;">
+                    <div class="feature-icon">🎛️</div>
+                    <h3>Mission Control</h3>
+                    <p>Admins can configure PETEY's personality, manage user memories, configure tasks, view metrics,
+                        and wipe brains through a sleek web dashboard interface.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+
+    <section id="faq" class="landing-section slide-up">
+        <div class="container">
+            <h2 class="section-title">Frequently Asked <span>Questions</span></h2>
+
+            <div class="faq-accordion">
+                <div class="faq-item">
+                    <button class="faq-question">Does the bot's name have to be PETEY? <span
+                            class="faq-icon">▼</span></button>
+                    <div class="faq-answer">
+                        <p>No! Once invited to your server, you can right-click the bot and select "Change Nickname" to
+                            rename it whatever you want. It responds to any name you give it.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Who can view the data PETEY collects? <span
+                            class="faq-icon">▼</span></button>
+                    <div class="faq-answer">
+                        <p>Users can only view their <em>own</em> data profiles. Only Server Administrators can manage
+                            PETEY's overarching settings or view server-wide metrics.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">How exactly does PETEY "remember" things? <span
+                            class="faq-icon">▼</span></button>
+                    <div class="faq-answer">
+                        <p>PETEY silently reads messages in the background and commits important facts to a local
+                            database, building a psychological profile on server members over time.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Does PETEY need any special permissions? <span
+                            class="faq-icon">▼</span></button>
+                    <div class="faq-answer">
+                        <p>Just standard read/send message permissions. It only tracks channels it is explicitly allowed
+                            to see.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">PETEY<span>_AI</span></div>
+                <p>&copy; 2026 PeteyAI. All rights reserved. | <a href="/tos" style="color:var(--primary); text-decoration:none;">Terms of Service</a> | <a href="/privacy" style="color:var(--primary); text-decoration:none;">Privacy Policy</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple IntersectionObserver for fade-in animations on scroll
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.slide-up').forEach(el => {
+            observer.observe(el);
+        });
+
+        // FAQ Accordion Logic
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+            const questionBtn = item.querySelector('.faq-question');
+            questionBtn.addEventListener('click', () => {
+                const isOpen = item.classList.contains('active');
+
+                // Close all other items
+                faqItems.forEach(otherItem => {
+                    otherItem.classList.remove('active');
+                    otherItem.querySelector('.faq-answer').style.maxHeight = null;
+                });
+
+                if (!isOpen) {
+                    item.classList.add('active');
+                    const answer = item.querySelector('.faq-answer');
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                }
+            });
+        });
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+
+        menuBtn.addEventListener('click', () => {
+            menuBtn.classList.toggle('open');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close mobile menu on link click
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                menuBtn.classList.remove('open');
+                navLinks.classList.remove('active');
+            });
+        });
+
+
+    </script>
+</body>
+
+</html>

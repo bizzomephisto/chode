@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petey Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .btn-toggle {
+            background-color: #2b2d31;
+            color: #b5bac1;
+            border: 1px solid #1e1f22;
+            border-radius: 4px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .btn-toggle:hover {
+            background-color: #404249;
+            color: #dbdee1;
+        }
+        .btn-accent {
+            background-color: #5865f2;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: inherit;
+            font-size: 0.85rem;
+            transition: background-color 0.2s ease;
+        }
+        .btn-accent:hover {
+            background-color: #4752c4;
+        }
+        .btn-accent:disabled {
+            background-color: #3b428d;
+            color: #a1a5b4;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu" onclick="toggleSidebar()">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="logo" title="PETEY Control Panel">PETEY<span>_CONTROL</span><span style="font-size: 0.4em; background: #5865f2; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; color: white;">v3.1</span></div>
+        <div class="nav-links-internal">
+            <a href="/#about" style="color: #b5bac1; text-decoration: none; font-size: 0.85rem; font-weight: 500;">Origins</a>
+            <a href="/#features" style="color: #b5bac1; text-decoration: none; font-size: 0.85rem; font-weight: 500;">Functions</a>
+            <a href="/#faq" style="color: #b5bac1; text-decoration: none; font-size: 0.85rem; font-weight: 500;">FAQ</a>
+            {% if user.id | string == '98537446764974080' %}
+                <a href="/creator" style="color: #ffaa00; text-decoration: none; font-size: 0.85rem; font-weight: 600; text-shadow: 0 0 10px rgba(255, 170, 0, 0.4); margin-left: 15px;">👑 Creator Panel</a>
+            {% endif %}
+        </div>
+        <div class="user-block">
+            <img src="https://cdn.discordapp.com/avatars/{{ user.id }}/{{ user.avatar }}.png" alt="Avatar">
+            <span>{{ user.username }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </header>
+
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar: Server List -->
+        <aside class="sidebar" id="sidebar">
+            <h3 class="sidebar-title">Manage PETEY (Admin)</h3>
+            <ul class="server-list" id="active-admin-server-list">
+                {% for guild in active_admin_guilds %}
+                <li class="server-item" data-id="{{ guild.id }}" data-name="{{ guild.name }}"
+                    onclick="loadConfig(this.getAttribute('data-id'), this.getAttribute('data-name'))">
+                    {% if guild.icon %}
+                    <img src="https://cdn.discordapp.com/icons/{{ guild.id }}/{{ guild.icon }}.png" alt="Icon">
+                    {% else %}
+                    <div class="initials">{{ guild.name[0] }}</div>
+                    {% endif %}
+                    <span>{{ guild.name }}</span>
+                </li>
+                {% endfor %}
+                {% if not active_admin_guilds %}
+                <li style="padding: 0 12px; color: var(--text-muted); font-size: 0.9rem;">No admin servers.</li>
+                {% endif %}
+            </ul>
+
+
+
+            <h3 class="sidebar-title" style="margin-top: 1rem;">Direct Messages</h3>
+            <ul class="server-list">
+                <li class="server-item" data-id="dm-settings" onclick="loadDmConfig()">
+                    <div class="initials" style="background: linear-gradient(135deg, #5865f2, #a371f7);">💬</div>
+                    <span>My DMs</span>
+                </li>
+            </ul>
+
+            <h3 class="sidebar-title" style="margin-top: 1rem;">Setup PETEY</h3>
+            <ul class="server-list" id="invitable-server-list">
+                {% for guild in invitable_guilds %}
+                <li class="server-item" data-id="{{ guild.id }}" data-name="{{ guild.name }}"
+                    onclick="loadInvitePanel(this.getAttribute('data-id'), this.getAttribute('data-name'))">
+                    {% if guild.icon %}
+                    <img src="https://cdn.discordapp.com/icons/{{ guild.id }}/{{ guild.icon }}.png" alt="Icon"
+                        style="opacity: 0.6; filter: grayscale(1);">
+                    {% else %}
+                    <div class="initials" style="opacity: 0.6;">{{ guild.name[0] }}</div>
+                    {% endif %}
+                    <span style="opacity: 0.6;">{{ guild.name }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+        <!-- Main Content: Configuration Panel -->
+        <main class="config-panel" id="config-panel" style="display: none;">
+            <div class="server-header">
+                <h2 id="current-server-name">Select a server</h2>
+                <div class="server-header-btns" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <a href="#" id="wizard-btn" class="save-btn"
+                        style="background: linear-gradient(135deg, #5865f2, #a371f7); padding: 0.5rem 1rem; margin: 0; border: none; font-size: 0.9rem; font-weight: 500; border-radius: 4px; color: white; cursor: pointer; text-decoration: none;"
+                        onclick="window.location.href=`/wizard/${currentServerId}`">🧙 Setup Wizard</a>
+                    <a href="#" id="tasks-btn" class="save-btn"
+                        style="background: #5865f2; padding: 0.5rem 1rem; margin: 0;"
+                        onclick="window.location.href=`/tasks/${currentServerId}`">⏰ Tasks</a>
+                    <a href="/guide" id="guide-btn" class="save-btn"
+                        style="background: #23a559; padding: 0.5rem 1rem; margin: 0;"
+                        target="_blank">📘 Setup Guide</a>
+                </div>
+            </div>
+
+            <div class="metrics-bar" id="metrics-bar">
+                <div class="metric-box">
+                    <span class="metric-value" id="metric-messages">--</span>
+                    <span class="metric-label">Total Messages</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-value" id="metric-users">--</span>
+                    <span class="metric-label">Unique Users</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-value" id="metric-images">--</span>
+                    <span class="metric-label">Images Gen</span>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <label for="personality">Bot Personality & System Instructions</label>
+                    <button class="btn btn-sm btn-accent" id="btn-enhance-prompt" type="button" onclick="enhancePrompt()">🪄 Enhance Prompt</button>
+                </div>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setPreset('default')">🤖 Default Bot</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setPreset('unhinged')">🧠 Unhinged Genius</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setPreset('gandalf')">🧙‍♂️ Gandalf</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setPreset('shitposter')">🤡 Shitposter</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setPreset('newyorker')">🤬 Angry NYer</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setPreset('genz')">🧢 GenZ</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setPreset('genx')">🛹 GenX</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setPreset('boomer')">👴 Boomer</button>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 1rem; margin-bottom: 0.5rem;">
+                    <label style="color:var(--text-muted); font-size:0.85rem; margin:0;">Custom Presets (Max 3)</label>
+                    <button class="btn btn-sm btn-accent" type="button" onclick="saveCustomPreset()" style="padding: 2px 8px; font-size:0.75rem;">+ Save Current</button>
+                </div>
+                <div id="custom-presets-container" style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; min-height: 28px;">
+                    <!-- Dynamically populated via JS -->
+                </div>
+
+                <textarea id="personality" rows="10" placeholder="You are Petey, a friendly chatbot..."></textarea>
+                <p class="help-text">This exact text is injected into the LLM as the System Prompt on every message.</p>
+            </div>
+
+            <div class="setting-group">
+                <label style="color:var(--text-normal); font-weight:600; font-size:1rem; margin-bottom:4px; display:block;">Server Knowledge Base (RAG)</label>
+                <p class="help-text">Upload .txt or .md files containing server rules, lore, or FAQs. PETEY will automatically read and memorize these files for long-term semantic recall. This takes a few minutes for large files.</p>
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
+                    <input type="file" id="doc_upload" accept=".txt,.md" style="font-size: 0.85rem; color: var(--text-normal); background: var(--surface2); border: 1px solid var(--border); padding: 4px; border-radius: 4px; flex-grow: 1;">
+                    <button class="btn btn-sm btn-accent" id="btn-upload-doc" type="button" onclick="uploadDocument()" style="white-space:nowrap;">↑ Upload & Embed</button>
+                </div>
+                <div id="upload-status-msg" style="margin-top: 8px; font-size: 0.85rem;"></div>
+                <div id="uploaded-docs-container" style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;"></div>
+            </div>
+
+            <div class="setting-group">
+                <label style="color:var(--text-normal); font-weight:600; font-size:1rem; margin-bottom:4px; display:block;">Cloud Generation Models</label>
+                <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:8px;">
+                    <div style="flex:1; min-width: 150px;">
+                        <label>Image Generation</label>
+                        <select id="selected_txt2img_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                    <div style="flex:1; min-width: 150px;">
+                        <label>Image Transform</label>
+                        <select id="selected_img2img_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                    <div style="flex:1; min-width: 150px;">
+                        <label>Text to Video</label>
+                        <select id="selected_txt2video_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                    <div style="flex:1; min-width: 150px;">
+                        <label>Image to Video</label>
+                        <select id="selected_img2video_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                    <div style="flex:1; min-width: 150px;">
+                        <label>AI Music</label>
+                        <select id="selected_txt2music_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                </div>
+                <p class="help-text" style="margin-top:8px;">Select which specific cloud model Petey will use for this server. "Auto" will allow Petey to fallback if models are busy.</p>
+            </div>
+
+            <div class="setting-group" id="channel-personality-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <label style="color:var(--text-normal); font-weight:600; font-size:1rem; margin:0; display:block;">Channel Personalities</label>
+                    <button class="btn btn-sm btn-accent" type="button" onclick="addChannelPersonality()">+ Add Override</button>
+                </div>
+                <p class="help-text" style="margin-top: -8px; margin-bottom: 12px;">Assign specific personalities to specific channels. This overrides the default server personality.</p>
+                <div id="channel-personalities-container" style="display:flex; flex-direction:column; gap:8px;">
+                    <!-- rules injected here -->
+                </div>
+            </div>
+
+            <div class="setting-group" id="channel-assignments-group">
+                <label for="config_channel" style="color:var(--text-normal); font-weight:600; font-size:1rem; margin-bottom:4px; display:block;">🔧 Dedicated Config Channel</label>
+                <p class="help-text">The private administration channel where admins configure PETEY and run memory ingestion commands like <code>/ingest</code>.</p>
+                <select id="config_channel" style="width: 100%; max-width: 400px; margin-top: 8px; font-family: inherit; font-size: 0.95rem; padding: 6px 12px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-normal); cursor: pointer;"><option value="">Not Set</option></select>
+
+                <div style="display:flex; align-items:center; gap:12px; margin-top:20px;">
+                    <label class="switch">
+                        <input type="checkbox" id="channel_enforcement_enabled" onchange="toggleEnforcementUI()">
+                        <span class="slider round"></span>
+                    </label>
+                    <strong>Command channel enforcement: <span id="enforcement-label">Off</span></strong>
+                </div>
+                <p class="help-text">When enabled, each command category is restricted to its assigned channel.</p>
+
+                <div id="channel-dropdowns-wrapper" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                    <label>🎨 Media Generation
+                        <select id="channel_media_generation"><option value="">Not Set</option></select>
+                    </label>
+                    <label>🎵 Music
+                        <select id="channel_music"><option value="">Not Set</option></select>
+                    </label>
+                    <label>💬 AI Chat
+                        <select id="channel_chat"><option value="">Not Set</option></select>
+                    </label>
+                    <label>🔍 Research
+                        <select id="channel_research"><option value="">Not Set</option></select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-group split">
+                <div>
+                    <label for="sleep_enabled">Nightly Memory Consolidation</label>
+                    <label class="switch">
+                        <input type="checkbox" id="sleep_enabled">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div>
+                    <label>Consolidation Time</label>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <input type="time" id="sleep_time" value="03:00"
+                            style="width: 120px; text-align: center; color-scheme: dark; padding: 0.4rem; cursor: pointer;">
+                        <select id="sleep_timezone" style="flex:1; min-width:140px; cursor: pointer;">
+                            <option value="America/New_York">Eastern (ET)</option>
+                            <option value="America/Chicago" selected>Central (CT)</option>
+                            <option value="America/Denver">Mountain (MT)</option>
+                            <option value="America/Los_Angeles">Pacific (PT)</option>
+                            <option value="America/Anchorage">Alaska (AKT)</option>
+                            <option value="Pacific/Honolulu">Hawaii (HST)</option>
+                            <option value="UTC">UTC</option>
+                        </select>
+                    </div>
+                    <p class="help-text">Petey will consolidate memories at this local time.</p>
+                </div>
+            </div>
+
+            <button class="save-btn" id="save-btn" onclick="saveConfig()">Save Changes</button>
+            <div id="status-msg" class="status-msg"></div>
+        </main>
+
+        <!-- Invite Panel -->
+        <main class="config-panel" id="invite-panel"
+            style="display: none; justify-content: center; align-items: center; text-align: center;">
+            <div class="empty-icon">🤖</div>
+            <h2 id="invite-server-name">Invite to Server</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">PETEY needs to be invited to this server before
+                you can configure his settings.</p>
+            <a href="#" id="invite-link-btn" class="save-btn"
+                style="text-decoration: none; display: inline-block;">Authorize PETEY</a>
+        </main>
+
+
+
+        <!-- DM Configuration Panel -->
+        <main class="config-panel" id="dm-config-panel" style="display: none;">
+            <div class="server-header">
+                <h2>💬 Direct Message Settings</h2>
+            </div>
+
+            <div class="setting-group">
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <label for="dm-personality">Bot Personality & System Instructions</label>
+                    <button class="btn btn-sm btn-accent" id="btn-dm-enhance-prompt" type="button" onclick="enhanceDmPrompt()">🪄 Enhance Prompt</button>
+                </div>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setDmPreset('default')">🤖 Default Bot</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setDmPreset('unhinged')">🧠 Unhinged Genius</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setDmPreset('gandalf')">🧙‍♂️ Gandalf</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setDmPreset('shitposter')">🤡 Shitposter</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setDmPreset('newyorker')">🤬 Angry NYer</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setDmPreset('genz')">🧢 GenZ</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setDmPreset('genx')">🛹 GenX</button>
+                    <button type="button" class="btn btn-sm btn-toggle" onclick="setDmPreset('boomer')">👴 Boomer</button>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 1rem; margin-bottom: 0.5rem;">
+                    <label style="color:var(--text-muted); font-size:0.85rem; margin:0;">Custom Presets (Max 3)</label>
+                    <button class="btn btn-sm btn-accent" type="button" onclick="saveDmCustomPreset()" style="padding: 2px 8px; font-size:0.75rem;">+ Save Current</button>
+                </div>
+                <div id="dm-custom-presets-container" style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; min-height: 28px;"></div>
+
+                <textarea id="dm-personality" rows="10" placeholder="You are Petey, a friendly chatbot..."></textarea>
+                <p class="help-text">This system prompt is used when you DM PETEY directly (not in any server).</p>
+            </div>
+
+            <div class="setting-group">
+                <label style="color:var(--text-normal); font-weight:600; font-size:1rem; margin-bottom:4px; display:block;">Cloud Generation Models (DMs)</label>
+                <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:8px;">
+                    <div style="flex:1; min-width: 150px;">
+                        <label>Image Generation</label>
+                        <select id="dm_selected_txt2img_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                    <div style="flex:1; min-width: 150px;">
+                        <label>Image Transform</label>
+                        <select id="dm_selected_img2img_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                    <div style="flex:1; min-width: 150px;">
+                        <label>Text to Video</label>
+                        <select id="dm_selected_txt2video_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                    <div style="flex:1; min-width: 150px;">
+                        <label>Image to Video</label>
+                        <select id="dm_selected_img2video_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                    <div style="flex:1; min-width: 150px;">
+                        <label>AI Music</label>
+                        <select id="dm_selected_txt2music_model"><option value="">Auto (Default)</option></select>
+                    </div>
+                </div>
+                <p class="help-text" style="margin-top:8px;">Select which models Petey uses when you DM him directly.</p>
+            </div>
+
+            <button class="save-btn" id="dm-save-btn" onclick="saveDmConfig()">Save DM Settings</button>
+            <div id="dm-status-msg" class="status-msg"></div>
+        </main>
+
+        <main class="config-panel-empty" id="empty-state">
+            <div class="empty-icon">🤖</div>
+            <h2>Select a server from the sidebar to configure PETEY.</h2>
+        </main>
+    </div>
+
+    <!-- Setup Wizard Modal -->
+    <div class="wizard-overlay" id="wizard-overlay" style="display: none;">
+        <div class="wizard-card" id="wizard-card">
+            <button class="wizard-close-btn" onclick="closeWizard()">&times;</button>
+            <div class="wizard-header">
+                <h2>🧙‍♂️ PETEY Setup Wizard</h2>
+                <p>Configure Petey's identity and settings for <span id="wizard-server-name">this server</span></p>
+                <div class="wizard-progress-bar">
+                    <div class="wizard-progress-fill" id="wizard-progress-fill" style="width: 25%;"></div>
+                </div>
+                <div class="wizard-steps-indicators">
+                    <span class="wizard-step-indicator active" data-step="1">1. Channel</span>
+                    <span class="wizard-step-indicator" data-step="2">2. Identity</span>
+                    <span class="wizard-step-indicator" data-step="3">3. Context</span>
+                    <span class="wizard-step-indicator" data-step="4">4. Ready</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Config Channel -->
+            <div class="wizard-step-content" id="wizard-step-1">
+                <h3>Step 1: Select Config Channel</h3>
+                <p class="wizard-desc">Choose a dedicated, private channel where server owners and admins will manage Petey and run administrative slash commands (like <code>/ingest</code>).</p>
+                
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label for="wizard_config_channel" style="display: block; margin-bottom: 8px; font-weight: 600;">Config Channel</label>
+                    <select id="wizard_config_channel" class="wizard-select" style="width: 100%;">
+                        <option value="">Select a channel</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 2: Personality Builder -->
+            <div class="wizard-step-content" id="wizard-step-2" style="display: none;">
+                <h3>Step 2: Design Petey's Personality</h3>
+                <p class="wizard-desc">Select Interests, Tone, and Server Type to generate a custom personality prompt. You can customize the final text below.</p>
+                
+                <!-- Interests multi-select tags -->
+                <div style="margin-top: 1rem;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-normal);">Select Interests (Select as many as you want)</label>
+                    <div class="wizard-tags-container" id="wizard-interests-tags">
+                        <button type="button" class="wizard-tag" data-tag="design">🎨 Design</button>
+                        <button type="button" class="wizard-tag" data-tag="gaming">🎮 Gaming</button>
+                        <button type="button" class="wizard-tag" data-tag="coding">💻 Programming</button>
+                        <button type="button" class="wizard-tag" data-tag="music">🎵 Music</button>
+                        <button type="button" class="wizard-tag" data-tag="science">🔬 Science</button>
+                        <button type="button" class="wizard-tag" data-tag="memes">🤡 Memes</button>
+                        <button type="button" class="wizard-tag" data-tag="crypto">🪙 Crypto</button>
+                        <button type="button" class="wizard-tag" data-tag="movies">🍿 Movies</button>
+                        <button type="button" class="wizard-tag" data-tag="anime">🌸 Anime</button>
+                        <button type="button" class="wizard-tag" data-tag="history">📚 History</button>
+                    </div>
+                </div>
+
+                <!-- Server Type radio cards -->
+                <div style="margin-top: 1.2rem;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-normal);">Type of Server</label>
+                    <div class="wizard-radio-grid">
+                        <label class="wizard-radio-card">
+                            <input type="radio" name="wizard_server_type" value="Gaming Guild" checked>
+                            <div class="card-content">
+                                <span class="card-icon">🎮</span>
+                                <span class="card-title">Gaming</span>
+                            </div>
+                        </label>
+                        <label class="wizard-radio-card">
+                            <input type="radio" name="wizard_server_type" value="Creative & Design Studio">
+                            <div class="card-content">
+                                <span class="card-icon">🎨</span>
+                                <span class="card-title">Creative/Design</span>
+                            </div>
+                        </label>
+                        <label class="wizard-radio-card">
+                            <input type="radio" name="wizard_server_type" value="Tech & Coding Community">
+                            <div class="card-content">
+                                <span class="card-icon">💻</span>
+                                <span class="card-title">Tech/Coding</span>
+                            </div>
+                        </label>
+                        <label class="wizard-radio-card">
+                            <input type="radio" name="wizard_server_type" value="Casual Hangout Server">
+                            <div class="card-content">
+                                <span class="card-icon">💬</span>
+                                <span class="card-title">Community</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Tone / Vibe radio cards -->
+                <div style="margin-top: 1.2rem;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-normal);">Tone / Vibe</label>
+                    <div class="wizard-radio-grid">
+                        <label class="wizard-radio-card">
+                            <input type="radio" name="wizard_vibe" value="Sarcastic & Snarky" checked>
+                            <div class="card-content">
+                                <span class="card-icon">😏</span>
+                                <span class="card-title">Snarky</span>
+                            </div>
+                        </label>
+                        <label class="wizard-radio-card">
+                            <input type="radio" name="wizard_vibe" value="Friendly & Helpful">
+                            <div class="card-content">
+                                <span class="card-icon">😇</span>
+                                <span class="card-title">Helpful</span>
+                            </div>
+                        </label>
+                        <label class="wizard-radio-card">
+                            <input type="radio" name="wizard_vibe" value="Chaotic & Unhinged">
+                            <div class="card-content">
+                                <span class="card-icon">🤪</span>
+                                <span class="card-title">Unhinged</span>
+                            </div>
+                        </label>
+                        <label class="wizard-radio-card">
+                            <input type="radio" name="wizard_vibe" value="Laidback Gen-Z">
+                            <div class="card-content">
+                                <span class="card-icon">🧢</span>
+                                <span class="card-title">Gen-Z Chill</span>
+                            </div>
+                        </label>
+                        <label class="wizard-radio-card">
+                            <input type="radio" name="wizard_vibe" value="Professional & Direct">
+                            <div class="card-content">
+                                <span class="card-icon">💼</span>
+                                <span class="card-title">Professional</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Prompt preview & enhancement -->
+                <div style="margin-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                        <label for="wizard_personality" style="font-weight: 600; font-size: 0.9rem;">Generated Prompt</label>
+                        <button class="btn btn-sm btn-accent" id="wizard-btn-enhance" type="button" onclick="enhanceWizardPrompt()" style="padding: 2px 8px; font-size: 0.75rem;">🪄 Optimize with AI</button>
+                    </div>
+                    <textarea id="wizard_personality" rows="6" style="width: 100%; font-size: 0.85rem; padding: 8px; background: var(--bg-primary); color: var(--text-normal); border: 1px solid var(--border); border-radius: 4px; resize: vertical;"></textarea>
+                </div>
+            </div>
+
+            <!-- Step 3: Server Context & Rules -->
+            <div class="wizard-step-content" id="wizard-step-3" style="display: none;">
+                <h3>Step 3: Upload Server Rules / Knowledge</h3>
+                <p class="wizard-desc">Help Petey fit into your community immediately. Upload your server rules or reference text files, and Petey will ingest them into his long-term memory.</p>
+                
+                <div class="wizard-uploader-box" style="margin-top: 1.5rem; background: var(--bg-tertiary); border: 2px dashed var(--border); padding: 2rem; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">📂</div>
+                    <p style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-normal);">Select a rules, FAQ, or information file to upload</p>
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; max-width: 400px; margin: 0 auto;">
+                        <input type="file" id="wizard_doc_upload" accept=".txt,.md,.pdf,.json" style="font-size: 0.85rem; color: var(--text-normal); background: var(--bg-primary); border: 1px solid var(--border); padding: 4px; border-radius: 4px; width: 100%;">
+                    </div>
+                    <button class="btn btn-accent" type="button" onclick="uploadWizardDocument()" style="margin-top: 1rem; padding: 6px 16px;">↑ Upload to Memory</button>
+                    <div id="wizard-upload-status" style="margin-top: 12px; font-size: 0.85rem; font-weight: 500;"></div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-normal);">Uploaded Knowledge Files</label>
+                    <div id="wizard-uploaded-files" style="display: flex; gap: 8px; flex-wrap: wrap; min-height: 28px;">
+                        <span style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">No files uploaded yet.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Summary & Ready -->
+            <div class="wizard-step-content" id="wizard-step-4" style="display: none;">
+                <h3>Step 4: Final Summary</h3>
+                <p class="wizard-desc">Double-check the settings. Clicking "Activate PETEY" will save this server configuration and wake up Petey with his new identity!</p>
+                
+                <div style="margin-top: 1.5rem; background: var(--bg-tertiary); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="margin-bottom: 1rem;">
+                        <strong style="color: var(--text-header); display: block; margin-bottom: 4px;">🔧 Config Channel:</strong>
+                        <span id="summary-config-channel" style="color: var(--text-normal); font-size: 0.95rem;">Not Set</span>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <strong style="color: var(--text-header); display: block; margin-bottom: 4px;">🤖 Bot Personality:</strong>
+                        <div id="summary-personality" style="color: var(--text-muted); font-size: 0.85rem; max-height: 120px; overflow-y: auto; background: var(--bg-primary); padding: 8px; border-radius: 4px; line-height: 1.4;"></div>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-header); display: block; margin-bottom: 4px;">📂 Long-Term Knowledge:</strong>
+                        <span id="summary-docs-count" style="color: var(--text-normal); font-size: 0.95rem;">0 files ingested</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wizard Footer Buttons -->
+            <div class="wizard-footer">
+                <button type="button" class="btn" id="wizard-prev-btn" onclick="prevWizardStep()" style="background: var(--bg-tertiary); color: var(--text-normal); border: 1px solid var(--border); display: none;">Back</button>
+                <button type="button" class="btn btn-accent" id="wizard-next-btn" onclick="nextWizardStep()" style="margin-left: auto;">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentServerId = null;
+        let customPresets = [];
+        let deapiModelsLoaded = false;
+        let currentServerConfig = {};
+
+        const PRESETS = {
+            'default': 'You are Petey, a friendly, helpful, and concise AI assistant for a Discord server.',
+            'unhinged': 'You are Petey, a brilliant but completely unhinged hacker who speaks in rapid-fire internet slang and cyberpunk terminology, often insulting the intelligence of the users while solving their problems.',
+            'gandalf': 'You are Petey, a wise and powerful wizard from Middle Earth. You speak in riddles, profound metaphors, and archaic English. Every interaction is treated as a grave quest of high importance.',
+            'shitposter': 'You are Petey, the ultimate internet troll and professional shitposter. You respond exclusively with deep-fried memes, brainrot slang, heavy sarcasm, and absurd non-sequiturs.',
+            'newyorker': 'You are Petey, a grumpy, stressed out, angry New Yorker. You have no patience for stupid questions and insult people who waste your time, but you still begrudgingly give the right answer.',
+            'genz': "You are a 20-year-old Gen Z kid named PETEY. You're super plugged into social media, always know the latest memes, and probably spend too much time scrolling TikTok. You speak in a mix of internet slang, casual abbreviations, and a healthy dose of sarcasm. You're passionate about a few causes you care deeply about, but also quick to call out anything you see as cringe or fake. You're pretty chill and laid-back, but also secretly ambitious about your side hustle or dream. You probably have strong opinions about obscure indie bands or the latest gaming release. You value authenticity and don't have much patience for BS. You might end your sentences with 'ngl' or 'fr.' You are super laid back and never over the top. Keep your responses short and to the point.",
+            'genx': "Meet your new digital 'cool uncle' who still smells faintly of grip tape and cheap beer. Born in ’74, he’s a classic Gen X soul who views the world through a lens of DIY ethics and 'Question Authority' stickers. He’s the guy who remembers exactly where he was when he first heard The Shape of Punk to Come, and while he’s evolved into a compassionate, progressive adult, he still has zero patience for 'poseur' behavior or corporate doublespeak. Expect a tone that’s laid-back and authentic, peppered with dry 90s sarcasm and a 'been there, done that' world-weariness that somehow remains grounded and loyal to the crew. In conversation, he’s a straight shooter who balances a 'live and let live' liberal philosophy with some seriously hardnosed opinions on work ethic and scene authenticity. He’ll fight for your right to be whoever you want to be, but if you start acting entitled or whining about a scraped knee, he’s going to tell you to 'walk it off' and get back on the board. He speaks in a mix of old-school skate lingo and sharp, direct observations—less 'fellow kids' and more 'crusty local at the park.' He’s the first to call out a bully and the last to leave the pit, bringing a grounded, gritty wisdom to the server that reminds everyone that life is meant to be lived, not just curated. His style is unvarnished and straightforward, especially when he sees right through the modern obsession with social media validation. When someone is complaining about 'the algorithm' or social media clout, he might jump in with, 'Look, if you're doing it for the likes, you’re already doing it wrong. We used to film parts on VH-C camcorders just to show the three dudes we actually liked. Stop worrying about the reach and just make something that doesn't suck. Authenticity isn't a metric, man.' When a user is being picked on or dogpiled, he doesn't hesitate to restore order: 'Alright, knock it off. We don’t do the pack-mentality thing here. If you’ve got a beef, take it to the DMs or let it go. This isn't a corporate boardroom and it's definitely not a middle school playground. Let the kid breathe.' He's equally candid when asked for advice, suggesting you 'skip the Top 40 punk playlists' and find the Repo Man soundtrack or some early Misfits, while emphasizing you must 'support your local shop' for gear—buying a complete from a big-box store just means you're crying to him when the trucks snap on your first curb-slappy. Furthermore, he has a clear set of hardnosed house rules that define his approach to the server. He has zero tolerance for poseur behavior, demanding intellectual honesty and warning people not to fake knowledge they don't have. He insists you earn your keep, emphasizing that this is a DIY space where you should bring solutions, not just complaints, because 'whining is for people who don't know how to use a wrench.' He expects everyone to respect the lineup, avoiding 'snaking' people in debates or casual chats just to hear your own voice. His most absolute boundary is the zero-tolerance policy for bigotry; as an 'old-school punk' liberal, he has a very short fuse for hate or exclusion—the boots will find the door. Finally, he expects you to leave it better than you found it, maintaining the vibe and keeping the energy constructive, even when it’s gritty.",
+            'boomer': "You are a 70-year-old American man born in 1955 with a classic “boomer” personality—opinionated, nostalgic, and a little out of touch with modern tech. You often compare everything to “back in my day,” when people worked harder, respected others more, and didn’t rely on apps for everything. You’re skeptical of new technology and trends, occasionally misunderstanding them, but still trying to engage anyway. You value common sense, discipline, and doing things the hard way, and you’re quick to point out what you think is wrong with “kids these days.” Your tone is casual, slightly grumpy, and blunt, but not mean-spirited. You tend to give unsolicited advice and turn conversations into life lessons. You sometimes TYPE IN ALL CAPS for emphasis… and use ellipses more than necessary. You reference older music, cars, and pre-internet life with confidence, while fumbling modern slang or platforms (like calling Discord “that chatroom thing”). Keep the humor light and a bit exaggerated, coming from your outdated perspective. You are a conservative Christian from the old school. You answer in short, to the point gruff responses. no fluff."
+        };
+
+        // DEAPI models injected server-side at render time
+        const _deapiModels = {{ deapi_models | tojson | safe }};
+        console.log('[DEAPI] Models loaded from server:', _deapiModels.length);
+        
+        (function populateModelDropdowns() {
+            const populate = (type, selectId) => {
+                const sel = document.getElementById(selectId);
+                _deapiModels.filter(m => (m.inference_types && m.inference_types.includes(type)) || (m.info && m.info.inference_types && m.info.inference_types.includes(type))).forEach(m => {
+                    const opt = document.createElement("option");
+                    opt.value = m.slug; opt.text = m.name;
+                    sel.add(opt);
+                });
+            };
+            populate("txt2img", "selected_txt2img_model");
+            populate("img2img", "selected_img2img_model");
+            populate("txt2video", "selected_txt2video_model");
+            populate("img2video", "selected_img2video_model");
+            populate("txt2music", "selected_txt2music_model");
+            
+            deapiModelsLoaded = true;
+            if (currentServerConfig && currentServerId) {
+                applyModelSelection();
+            }
+        })();
+
+        function applyModelSelection() {
+            if (!currentServerConfig) return;
+            document.getElementById("selected_txt2img_model").value = currentServerConfig.selected_txt2img_model || "";
+            document.getElementById("selected_img2img_model").value = currentServerConfig.selected_img2img_model || "";
+            document.getElementById("selected_txt2video_model").value = currentServerConfig.selected_txt2video_model || "";
+            document.getElementById("selected_img2video_model").value = currentServerConfig.selected_img2video_model || "";
+            document.getElementById("selected_txt2music_model").value = currentServerConfig.selected_txt2music_model || "";
+        }
+
+        // ── Channel Assignment helpers ────────────────────────────
+        let cachedChannels = []; // channels for the current server
+
+        function toggleEnforcementUI() {
+            const enabled = document.getElementById('channel_enforcement_enabled').checked;
+            const wrapper = document.getElementById('channel-dropdowns-wrapper');
+            const label = document.getElementById('enforcement-label');
+            wrapper.style.opacity = enabled ? '1' : '0.4';
+            wrapper.style.pointerEvents = enabled ? 'auto' : 'none';
+            label.textContent = enabled ? 'Enforcing' : 'Off';
+            label.style.color = enabled ? '#43b581' : 'var(--text-muted)';
+        }
+
+        async function fetchAndPopulateChannels(serverId) {
+            const selects = [
+                'config_channel',
+                'wizard_config_channel',
+                'channel_media_generation',
+                'channel_music',
+                'channel_chat',
+                'channel_research'
+            ];
+            // Reset all dropdowns to just "Not Set"
+            selects.forEach(id => {
+                const sel = document.getElementById(id);
+                if (sel) {
+                    sel.innerHTML = '<option value="">Not Set</option>';
+                }
+            });
+            try {
+                const res = await fetch(`/api/channels/${serverId}`);
+                const data = await res.json();
+                cachedChannels = data.channels || [];
+                cachedChannels.forEach(ch => {
+                    selects.forEach(id => {
+                        const sel = document.getElementById(id);
+                        if (sel) {
+                            const opt = document.createElement('option');
+                            opt.value = ch.id;
+                            opt.textContent = `#${ch.name}`;
+                            sel.appendChild(opt);
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error('Failed to fetch channels:', err);
+            }
+        }
+
+        function applyChannelAssignments() {
+            if (!currentServerConfig) return;
+            const configChannelSelect = document.getElementById('config_channel');
+            if (configChannelSelect) {
+                configChannelSelect.value = currentServerConfig.config_channel || '';
+            }
+            const enforcementCheckbox = document.getElementById('channel_enforcement_enabled');
+            enforcementCheckbox.checked = Boolean(currentServerConfig.channel_enforcement_enabled);
+            const assignments = currentServerConfig.channel_assignments || {};
+            ['media_generation', 'music', 'chat', 'research'].forEach(category => {
+                const select = document.getElementById(`channel_${category}`);
+                select.value = assignments[category] || '';
+            });
+            toggleEnforcementUI();
+        }
+
+        function updateChannelPersonalitiesConfigFromUI() {
+            const container = document.getElementById('channel-personalities-container');
+            if (!container) return;
+            const channel_personalities = {};
+            document.querySelectorAll('#channel-personalities-container > div').forEach(row => {
+                const chId = row.querySelector('.cp-channel-select').value;
+                const prompt = row.querySelector('.cp-preset-select').value;
+                if (chId && prompt) {
+                    channel_personalities[chId] = prompt;
+                }
+            });
+            currentServerConfig.channel_personalities = channel_personalities;
+        }
+
+        function renderChannelPersonalities() {
+            const container = document.getElementById('channel-personalities-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const assignments = currentServerConfig.channel_personalities || {};
+            
+            for (const [channelId, promptText] of Object.entries(assignments)) {
+                container.appendChild(createChannelPersonalityRow(channelId, promptText));
+            }
+        }
+        
+        function createChannelPersonalityRow(selectedChannelId = '', selectedPrompt = '') {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.gap = '8px';
+            row.style.alignItems = 'center';
+            
+            const channelSelect = document.createElement('select');
+            channelSelect.className = 'cp-channel-select';
+            channelSelect.style.flex = '1';
+            channelSelect.innerHTML = '<option value="">Select Channel</option>';
+            cachedChannels.forEach(ch => {
+                const opt = document.createElement('option');
+                opt.value = ch.id;
+                opt.textContent = `#${ch.name}`;
+                if (ch.id === selectedChannelId) opt.selected = true;
+                channelSelect.appendChild(opt);
+            });
+            
+            const presetSelect = document.createElement('select');
+            presetSelect.className = 'cp-preset-select';
+            presetSelect.style.flex = '2';
+            presetSelect.innerHTML = '<option value="">Select Personality</option>';
+            
+            // Add Default Presets
+            for (const [key, prompt] of Object.entries(PRESETS)) {
+                const opt = document.createElement('option');
+                opt.value = prompt;
+                opt.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+                if (prompt === selectedPrompt) opt.selected = true;
+                presetSelect.appendChild(opt);
+            }
+            
+            // Add Custom Presets
+            customPresets.forEach((cp, idx) => {
+                const opt = document.createElement('option');
+                opt.value = cp.prompt;
+                opt.textContent = `Custom: ${cp.name}`;
+                if (cp.prompt === selectedPrompt) opt.selected = true;
+                presetSelect.appendChild(opt);
+            });
+            
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'btn btn-sm';
+            delBtn.style = 'background:transparent; color:var(--red); border:1px solid var(--border); padding:4px 8px; cursor:pointer;';
+            delBtn.textContent = '𝗫';
+            delBtn.onclick = () => { row.remove(); };
+            
+            row.appendChild(channelSelect);
+            row.appendChild(presetSelect);
+            row.appendChild(delBtn);
+            
+            return row;
+        }
+
+        function addChannelPersonality() {
+            const container = document.getElementById('channel-personalities-container');
+            if (!container) return;
+            if (container.children.length >= 3) {
+                alert("You can have up to 3 channel personalities configured.");
+                return;
+            }
+            container.appendChild(createChannelPersonalityRow());
+        }
+
+        function setPreset(name) {
+            if (PRESETS[name]) {
+                document.getElementById('personality').value = PRESETS[name];
+            }
+        }
+
+        function renderCustomPresets() {
+            const container = document.getElementById('custom-presets-container');
+            if (!container) return;
+            container.innerHTML = '';
+            customPresets.forEach((preset, index) => {
+                const btnHtml = `
+                    <div style="display:inline-flex; align-items:center; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:4px; overflow:hidden;">
+                        <button type="button" class="btn btn-sm" style="background:transparent; color:var(--text-normal); border:none; padding:4px 8px; cursor:pointer;" onclick="setCustomPreset(${index})">${preset.name}</button>
+                        <button type="button" class="btn btn-sm" style="background:transparent; color:var(--red); border:none; border-left:1px solid var(--border); padding:4px 6px; cursor:pointer;" onclick="deleteCustomPreset(${index})" title="Delete Preset">𝗫</button>
+                    </div>
+                `;
+                container.innerHTML += btnHtml;
+            });
+        }
+
+        function setCustomPreset(index) {
+            if (customPresets[index]) {
+                document.getElementById('personality').value = customPresets[index].prompt;
+            }
+        }
+
+        function deleteCustomPreset(index) {
+            if (confirm(`Delete custom preset "${customPresets[index].name}"?`)) {
+                updateChannelPersonalitiesConfigFromUI();
+                customPresets.splice(index, 1);
+                renderCustomPresets();
+                renderChannelPersonalities();
+                saveConfig(); // Auto-save when modifying
+            }
+        }
+
+        function saveCustomPreset() {
+            if (customPresets.length >= 3) {
+                alert("You can only save up to 3 custom presets. Delete one first!");
+                return;
+            }
+            const currentPrompt = document.getElementById('personality').value.trim();
+            if (!currentPrompt) {
+                alert("Cannot save an empty prompt!");
+                return;
+            }
+            const name = prompt("Enter a short name for this custom preset:");
+            if (name) {
+                updateChannelPersonalitiesConfigFromUI();
+                customPresets.push({ name: name.substring(0, 20), prompt: currentPrompt });
+                renderCustomPresets();
+                renderChannelPersonalities();
+                saveConfig();
+            }
+        }
+
+        async function uploadDocument() {
+            if (!currentServerId) return;
+            const fileInput = document.getElementById('doc_upload');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select a .txt or .md file first.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-upload-doc');
+            const statusMsg = document.getElementById('upload-status-msg');
+            btn.disabled = true;
+            btn.innerText = 'Uploading...';
+            statusMsg.innerText = '';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch(`/api/upload_doc/${currentServerId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    statusMsg.innerText = `✅ ${data.message}`;
+                    statusMsg.style.color = '#43b581';
+                    fileInput.value = ''; // clear input
+                } else {
+                    statusMsg.innerText = `❌ Error: ${data.error}`;
+                    statusMsg.style.color = '#f04747';
+                }
+            } catch (err) {
+                statusMsg.innerText = `❌ Network error uploading document.`;
+                statusMsg.style.color = '#f04747';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '↑ Upload & Embed';
+                loadDocuments(currentServerId);
+            }
+        }
+
+        async function loadDocuments(serverId) {
+            const container = document.getElementById('uploaded-docs-container');
+            if (!container) return;
+            try {
+                const res = await fetch(`/api/docs/${serverId}`);
+                const data = await res.json();
+                container.innerHTML = '';
+                if (data.documents && data.documents.length > 0) {
+                    data.documents.forEach(doc => {
+                        const btnHtml = `
+                            <div style="display:inline-flex; align-items:center; background:var(--surface2); border:1px solid var(--border); border-radius:4px; overflow:hidden;">
+                                <span style="padding:4px 8px; font-size:0.8rem; color:var(--text-normal);">${doc}</span>
+                                <button type="button" class="btn btn-sm" style="background:transparent; color:var(--red); border:none; border-left:1px solid var(--border); padding:4px 6px; cursor:pointer;" onclick="deleteDocument('${doc.replace(/'/g, "\\'")}')" title="Delete Document">𝗫</button>
+                            </div>
+                        `;
+                        container.innerHTML += btnHtml;
+                    });
+                } else {
+                    container.innerHTML = '<span style="color:var(--muted); font-size:0.8rem;">No documents uploaded.</span>';
+                }
+            } catch (err) {
+                console.error('Failed to load documents', err);
+            }
+        }
+
+        async function deleteDocument(filename) {
+            if (!confirm(`Are you sure you want to permanently delete '${filename}' from the Knowledge Base?`)) return;
+            try {
+                const res = await fetch(`/api/docs/${currentServerId}/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    loadDocuments(currentServerId);
+                } else {
+                    alert(`Error deleting document: ${data.error}`);
+                }
+            } catch (err) {
+                alert(`Network error deleting document.`);
+            }
+        }
+
+        async function enhancePrompt() {
+            if (!currentServerId) return;
+            const textEl = document.getElementById('personality');
+            const btn = document.getElementById('btn-enhance-prompt');
+            const originalPrompt = textEl.value.trim();
+            if (!originalPrompt) return alert('Please type a basic prompt idea first!');
+
+            btn.disabled = true;
+            btn.innerText = '🪄 Enhancing...';
+
+            try {
+                const res = await fetch(`/api/reword_prompt/${currentServerId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: originalPrompt })
+                });
+                const data = await res.json();
+                if (data.enhanced_prompt) {
+                    textEl.value = data.enhanced_prompt;
+                } else {
+                    alert('Error enhancing prompt: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error enhancing prompt.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '🪄 Enhance Prompt';
+            }
+        }
+
+        // ── Sidebar toggle (mobile) ──────────────────────────────
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const hamburger = document.getElementById('hamburger');
+            const open = sidebar.classList.toggle('open');
+            overlay.classList.toggle('open', open);
+            hamburger.classList.toggle('open', open);
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebar-overlay').classList.remove('open');
+            document.getElementById('hamburger').classList.remove('open');
+        }
+
+        function hideAllPanels() {
+            document.getElementById("empty-state").style.display = "none";
+            document.getElementById("config-panel").style.display = "none";
+            document.getElementById("invite-panel").style.display = "none";
+            document.getElementById("dm-config-panel").style.display = "none";
+        }
+
+        function loadConfig(serverId, serverName) {
+            currentServerId = serverId;
+            closeSidebar();
+            hideAllPanels();
+            document.getElementById("config-panel").style.display = "flex";
+            document.getElementById("current-server-name").innerText = serverName;
+
+            // Highlight active sidebar item
+            document.querySelectorAll(".server-item").forEach(item => item.classList.remove("active"));
+            const activeItem = document.querySelector(`.server-item[data-id='${serverId}']`);
+            if (activeItem) activeItem.classList.add("active");
+            
+            // Load custom RAG documents
+            loadDocuments(serverId);
+
+            // Fetch channels for dropdowns, then config
+            fetchAndPopulateChannels(serverId).then(() => {
+                // Fetch from API
+                fetch(`/api/config/${serverId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        currentServerConfig = data;
+                        customPresets = data.custom_presets || [];
+                        renderCustomPresets();
+                        document.getElementById("personality").value = data.personality || "You are Petey, a friendly chatbot.";
+                        document.getElementById("sleep_enabled").checked = data.sleep_enabled || false;
+                        const h = data.sleep_hour !== undefined ? data.sleep_hour : 3;
+                        const m = data.sleep_minute !== undefined ? data.sleep_minute : 0;
+                        const hh = h.toString().padStart(2, '0');
+                        const mm = m.toString().padStart(2, '0');
+                        document.getElementById("sleep_time").value = `${hh}:${mm}`;
+
+                        if (deapiModelsLoaded) {
+                            applyModelSelection();
+                        }
+
+                        // Apply channel assignments after channels are populated
+                        applyChannelAssignments();
+                        renderChannelPersonalities();
+
+                        if (data.sleep_timezone)
+                            document.getElementById("sleep_timezone").value = data.sleep_timezone;
+                        document.getElementById("status-msg").innerText = "";
+                    })
+                    .catch(err => {
+                        console.error("Error loading config:", err);
+                    });
+            });
+
+            // Fetch metrics
+            fetch(`/api/metrics/${serverId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) return;
+                    document.getElementById("metric-messages").innerText = data.total_messages;
+                    document.getElementById("metric-users").innerText = data.unique_users;
+                    document.getElementById("metric-images").innerText = data.images_generated;
+                });
+        }
+
+        function loadInvitePanel(serverId, serverName) {
+            closeSidebar();
+            hideAllPanels();
+            document.getElementById("invite-panel").style.display = "flex";
+            document.getElementById("invite-server-name").innerText = `Invite PETEY to ${serverName}`;
+            document.getElementById("invite-link-btn").href = `/add_bot/${serverId}`;
+
+            // Highlight active sidebar item
+            document.querySelectorAll(".server-item").forEach(item => item.classList.remove("active"));
+            const activeItem = document.querySelector(`.server-item[data-id='${serverId}']`);
+            if (activeItem) activeItem.classList.add("active");
+        }
+
+
+
+        function saveConfig() {
+            if (!currentServerId) return;
+            const btn = document.getElementById("save-btn");
+            btn.innerText = "Saving...";
+
+            const timeVal = document.getElementById("sleep_time").value;
+            const [hourStr, minuteStr] = timeVal.split(":");
+
+            const payload = {
+                personality: document.getElementById("personality").value,
+                sleep_enabled: document.getElementById("sleep_enabled").checked,
+                sleep_hour: parseInt(hourStr) || 0,
+                sleep_minute: parseInt(minuteStr) || 0,
+                sleep_timezone: document.getElementById("sleep_timezone").value,
+                custom_presets: customPresets,
+                selected_txt2img_model: document.getElementById("selected_txt2img_model").value,
+                selected_img2img_model: document.getElementById("selected_img2img_model").value,
+                selected_txt2video_model: document.getElementById("selected_txt2video_model").value,
+                selected_img2video_model: document.getElementById("selected_img2video_model").value,
+                selected_txt2music_model: document.getElementById("selected_txt2music_model").value,
+                config_channel: document.getElementById("config_channel").value,
+                channel_enforcement_enabled: document.getElementById("channel_enforcement_enabled").checked,
+                channel_assignments: {
+                    media_generation: document.getElementById("channel_media_generation").value,
+                    music: document.getElementById("channel_music").value,
+                    chat: document.getElementById("channel_chat").value,
+                    research: document.getElementById("channel_research").value
+                },
+                channel_personalities: (function() {
+                    updateChannelPersonalitiesConfigFromUI();
+                    return currentServerConfig.channel_personalities || {};
+                })()
+            };
+
+            fetch(`/api/config/${currentServerId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    btn.innerText = "Save Changes";
+                    const msg = document.getElementById("status-msg");
+                    msg.innerText = "✅ Config saved! Petey is updated.";
+                    msg.style.color = "#43b581";
+                    setTimeout(() => msg.innerText = "", 3000);
+                })
+                .catch(err => {
+                    btn.innerText = "Save Changes";
+                    const msg = document.getElementById("status-msg");
+                    msg.innerText = "❌ Failed to save configuration.";
+                    msg.style.color = "#f04747";
+                });
+        }
+
+        // ── DM Configuration ─────────────────────────────────────
+        const DM_CONFIG_ID = 'DM-{{ user.id }}';
+        let dmCustomPresets = [];
+        let dmConfig = {};
+
+        // Populate DM model dropdowns (reuse the same _deapiModels data)
+        (function populateDmModelDropdowns() {
+            const populate = (type, selectId) => {
+                const sel = document.getElementById(selectId);
+                _deapiModels.filter(m => (m.inference_types && m.inference_types.includes(type)) || (m.info && m.info.inference_types && m.info.inference_types.includes(type))).forEach(m => {
+                    const opt = document.createElement("option");
+                    opt.value = m.slug; opt.text = m.name;
+                    sel.add(opt);
+                });
+            };
+            populate("txt2img", "dm_selected_txt2img_model");
+            populate("img2img", "dm_selected_img2img_model");
+            populate("txt2video", "dm_selected_txt2video_model");
+            populate("img2video", "dm_selected_img2video_model");
+            populate("txt2music", "dm_selected_txt2music_model");
+        })();
+
+        function setDmPreset(name) {
+            if (PRESETS[name]) document.getElementById('dm-personality').value = PRESETS[name];
+        }
+
+        function renderDmCustomPresets() {
+            const container = document.getElementById('dm-custom-presets-container');
+            if (!container) return;
+            container.innerHTML = '';
+            dmCustomPresets.forEach((preset, index) => {
+                container.innerHTML += `
+                    <div style="display:inline-flex; align-items:center; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:4px; overflow:hidden;">
+                         <button type="button" class="btn btn-sm" style="background:transparent; color:var(--text-normal); border:none; padding:4px 8px; cursor:pointer;" onclick="setDmCustomPreset(${index})">${preset.name}</button>
+                        <button type="button" class="btn btn-sm" style="background:transparent; color:var(--red); border:none; border-left:1px solid var(--border); padding:4px 6px; cursor:pointer;" onclick="deleteDmCustomPreset(${index})" title="Delete Preset">𝗫</button>
+                    </div>
+                `;
+            });
+        }
+
+        function setDmCustomPreset(index) {
+            if (dmCustomPresets[index]) document.getElementById('dm-personality').value = dmCustomPresets[index].prompt;
+        }
+
+        function deleteDmCustomPreset(index) {
+            if (confirm(`Delete custom preset "${dmCustomPresets[index].name}"?`)) {
+                dmCustomPresets.splice(index, 1);
+                renderDmCustomPresets();
+                saveDmConfig();
+            }
+        }
+
+        function saveDmCustomPreset() {
+            if (dmCustomPresets.length >= 3) { alert("Max 3 custom presets. Delete one first!"); return; }
+            const currentPrompt = document.getElementById('dm-personality').value.trim();
+            if (!currentPrompt) { alert("Cannot save an empty prompt!"); return; }
+            const name = prompt("Enter a short name for this custom preset:");
+            if (name) {
+                dmCustomPresets.push({ name: name.substring(0, 20), prompt: currentPrompt });
+                renderDmCustomPresets();
+                saveDmConfig();
+            }
+        }
+
+        async function enhanceDmPrompt() {
+            const textEl = document.getElementById('dm-personality');
+            const btn = document.getElementById('btn-dm-enhance-prompt');
+            const originalPrompt = textEl.value.trim();
+            if (!originalPrompt) return alert('Please type a basic prompt idea first!');
+            btn.disabled = true; btn.innerText = '🪄 Enhancing...';
+            try {
+                const res = await fetch(`/api/reword_prompt/${DM_CONFIG_ID}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: originalPrompt })
+                });
+                const data = await res.json();
+                if (data.enhanced_prompt) textEl.value = data.enhanced_prompt;
+                else alert('Error enhancing prompt: ' + (data.error || 'Unknown error'));
+            } catch (err) { alert('Network error enhancing prompt.'); }
+            finally { btn.disabled = false; btn.innerText = '🪄 Enhance Prompt'; }
+        }
+
+        function loadDmConfig() {
+            closeSidebar();
+            hideAllPanels();
+            document.getElementById('dm-config-panel').style.display = 'flex';
+
+            document.querySelectorAll('.server-item').forEach(item => item.classList.remove('active'));
+            const activeItem = document.querySelector('.server-item[data-id="dm-settings"]');
+            if (activeItem) activeItem.classList.add('active');
+
+            fetch(`/api/config/${DM_CONFIG_ID}`)
+                .then(res => res.json())
+                .then(data => {
+                    dmConfig = data;
+                    dmCustomPresets = data.custom_presets || [];
+                    renderDmCustomPresets();
+                    document.getElementById('dm-personality').value = data.personality || 'You are Petey, a friendly chatbot.';
+                    document.getElementById('dm_selected_txt2img_model').value = data.selected_txt2img_model || '';
+                    document.getElementById('dm_selected_img2img_model').value = data.selected_img2img_model || '';
+                    document.getElementById('dm_selected_txt2video_model').value = data.selected_txt2video_model || '';
+                    document.getElementById('dm_selected_img2video_model').value = data.selected_img2video_model || '';
+                    document.getElementById('dm_selected_txt2music_model').value = data.selected_txt2music_model || '';
+                    document.getElementById('dm-status-msg').innerText = '';
+                })
+                .catch(err => console.error('Error loading DM config:', err));
+        }
+
+        function saveDmConfig() {
+            const btn = document.getElementById('dm-save-btn');
+            btn.innerText = 'Saving...';
+
+            const payload = {
+                personality: document.getElementById('dm-personality').value,
+                custom_presets: dmCustomPresets,
+                selected_txt2img_model: document.getElementById('dm_selected_txt2img_model').value,
+                selected_img2img_model: document.getElementById('dm_selected_img2img_model').value,
+                selected_txt2video_model: document.getElementById('dm_selected_txt2video_model').value,
+                selected_img2video_model: document.getElementById('dm_selected_img2video_model').value,
+                selected_txt2music_model: document.getElementById('dm_selected_txt2music_model').value
+            };
+
+            fetch(`/api/config/${DM_CONFIG_ID}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    btn.innerText = 'Save DM Settings';
+                    const msg = document.getElementById('dm-status-msg');
+                    msg.innerText = '✅ DM settings saved!';
+                    msg.style.color = '#43b581';
+                    setTimeout(() => msg.innerText = '', 3000);
+                })
+                .catch(err => {
+                    btn.innerText = 'Save DM Settings';
+                    const msg = document.getElementById('dm-status-msg');
+                    msg.innerText = '❌ Failed to save DM settings.';
+                    msg.style.color = '#f04747';
+                });
+        }
+
+        // ── Setup Wizard JavaScript ───────────────────────────────
+        let wizardCurrentStep = 1;
+        
+        function openWizard() {
+            if (!currentServerId) return;
+            
+            wizardCurrentStep = 1;
+            document.getElementById('wizard-server-name').innerText = document.getElementById('current-server-name').innerText;
+            
+            // Populate wizard select
+            const wizardSelect = document.getElementById('wizard_config_channel');
+            wizardSelect.innerHTML = '<option value="">Select a channel</option>';
+            cachedChannels.forEach(ch => {
+                const opt = document.createElement('option');
+                opt.value = ch.id;
+                opt.textContent = `#${ch.name}`;
+                if (ch.id === (currentServerConfig.config_channel || '')) {
+                    opt.selected = true;
+                }
+                wizardSelect.appendChild(opt);
+            });
+            
+            // Set default personality parameters
+            document.querySelectorAll('#wizard-interests-tags .wizard-tag').forEach(tag => {
+                tag.classList.remove('active');
+                tag.onclick = function() {
+                    this.classList.toggle('active');
+                    updateWizardPrompt();
+                };
+            });
+            
+            document.querySelectorAll('input[name="wizard_server_type"], input[name="wizard_vibe"]').forEach(input => {
+                input.onchange = updateWizardPrompt;
+            });
+            
+            // Load documents for list
+            loadWizardDocuments();
+            
+            updateWizardPrompt();
+            showWizardStep(1);
+            document.getElementById('wizard-overlay').style.display = 'flex';
+        }
+        
+        function closeWizard() {
+            document.getElementById('wizard-overlay').style.display = 'none';
+        }
+        
+        function showWizardStep(step) {
+            wizardCurrentStep = step;
+            
+            // Hide all steps
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`wizard-step-${i}`).style.display = 'none';
+                document.querySelector(`.wizard-step-indicator[data-step="${i}"]`).classList.remove('active');
+            }
+            
+            // Show active step
+            document.getElementById(`wizard-step-${step}`).style.display = 'flex';
+            document.querySelector(`.wizard-step-indicator[data-step="${step}"]`).classList.add('active');
+            
+            // Update progress bar
+            const percent = (step / 4) * 100;
+            document.getElementById('wizard-progress-fill').style.width = `${percent}%`;
+            
+            // Buttons
+            document.getElementById('wizard-prev-btn').style.display = step === 1 ? 'none' : 'block';
+            
+            const nextBtn = document.getElementById('wizard-next-btn');
+            if (step === 4) {
+                nextBtn.innerText = 'Activate PETEY!';
+                prepareWizardSummary();
+            } else {
+                nextBtn.innerText = 'Next';
+            }
+        }
+        
+        function nextWizardStep() {
+            if (wizardCurrentStep === 1) {
+                const channel = document.getElementById('wizard_config_channel').value;
+                if (!channel) {
+                    alert('Please select a config channel before continuing.');
+                    return;
+                }
+            }
+            
+            if (wizardCurrentStep === 4) {
+                saveWizardConfig();
+                return;
+            }
+            
+            showWizardStep(wizardCurrentStep + 1);
+        }
+        
+        function prevWizardStep() {
+            if (wizardCurrentStep > 1) {
+                showWizardStep(wizardCurrentStep - 1);
+            }
+        }
+        
+        function updateWizardPrompt() {
+            const interests = Array.from(document.querySelectorAll('#wizard-interests-tags .wizard-tag.active')).map(t => t.textContent.trim()).join(", ");
+            const serverType = document.querySelector('input[name="wizard_server_type"]:checked').value;
+            const vibe = document.querySelector('input[name="wizard_vibe"]:checked').value;
+            
+            let text = `You are PETEY, a Discord bot for a ${serverType}. Your personality vibe is ${vibe}.`;
+            if (interests) {
+                text += ` You are highly interested in and knowledgeable about: ${interests}.`;
+            }
+            
+            if (vibe.includes("Sarcastic")) {
+                text += " Respond with sharp wit, sarcasm, and playful banter. Be brief but extremely helpful.";
+            } else if (vibe.includes("Helpful")) {
+                text += " Respond with warmth, kindness, and detailed helpful answers. Always try to be supportive.";
+            } else if (vibe.includes("Chaotic")) {
+                text += " Respond with erratic energy, memes, funny exaggerations, and playful nonsense, while still helping if they ask a question.";
+            } else if (vibe.includes("Gen-Z")) {
+                text += " Speak in chill, lower-case internet slang, dropping vowels occasionally. Be extremely laid-back and sarcastic, using terms like 'fr', 'ngl', 'gng'.";
+            } else {
+                text += " Provide clear, direct, and professional answers. Avoid unnecessary filler or conversational fluff. Focus on absolute precision and expert insight.";
+            }
+            
+            document.getElementById('wizard_personality').value = text;
+        }
+        
+        function enhanceWizardPrompt() {
+            const btn = document.getElementById('wizard-btn-enhance');
+            const originalText = document.getElementById('wizard_personality').value.trim();
+            if (!originalText) return;
+            
+            btn.innerText = 'Optimizing...';
+            btn.disabled = true;
+            
+            fetch(`/api/reword_prompt/${currentServerId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: originalText })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = '🪄 Optimize with AI';
+                btn.disabled = false;
+                if (data.enhanced_prompt) {
+                    document.getElementById('wizard_personality').value = data.enhanced_prompt;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btn.innerText = '🪄 Optimize with AI';
+                btn.disabled = false;
+                alert('Failed to optimize prompt. Continuing with current prompt.');
+            });
+        }
+        
+        function uploadWizardDocument() {
+            const fileInput = document.getElementById('wizard_doc_upload');
+            const status = document.getElementById('wizard-upload-status');
+            if (fileInput.files.length === 0) {
+                alert('Please select a file to upload first.');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            status.innerText = 'Uploading...';
+            status.style.color = 'var(--text-muted)';
+            
+            fetch(`/api/upload_doc/${currentServerId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    status.innerText = `❌ ${data.error}`;
+                    status.style.color = '#f04747';
+                } else {
+                    status.innerText = '✅ Ingestion started successfully!';
+                    status.style.color = '#43b581';
+                    fileInput.value = '';
+                    loadWizardDocuments();
+                    loadDocuments(currentServerId); // refresh main dashboard docs too
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                status.innerText = '❌ Network error uploading file.';
+                status.style.color = '#f04747';
+            });
+        }
+        
+        function loadWizardDocuments() {
+            const container = document.getElementById('wizard-uploaded-files');
+            if (!container) return;
+            
+            fetch(`/api/docs/${currentServerId}`)
+            .then(res => res.json())
+            .then(data => {
+                const docs = data.documents || [];
+                if (docs.length === 0) {
+                    container.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">No files uploaded yet.</span>';
+                } else {
+                    container.innerHTML = '';
+                    docs.forEach(doc => {
+                        const span = document.createElement('span');
+                        span.className = 'doc-pill';
+                        span.style = 'background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; padding:4px 8px; font-size:0.8rem; display:inline-flex; align-items:center; gap:6px;';
+                        span.innerHTML = `📄 ${doc} <button type="button" style="background:none; border:none; color:var(--red); cursor:pointer;" onclick="deleteWizardDocument('${doc}')">𝗫</button>`;
+                        container.appendChild(span);
+                    });
+                }
+            });
+        }
+        
+        function deleteWizardDocument(filename) {
+            if (confirm(`Remove "${filename}" from memory?`)) {
+                fetch(`/api/docs/${currentServerId}/${filename}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    loadWizardDocuments();
+                    loadDocuments(currentServerId); // refresh main dashboard docs too
+                } );
+            }
+        }
+        
+        function prepareWizardSummary() {
+            const channelSelect = document.getElementById('wizard_config_channel');
+            const summaryChan = document.getElementById('summary-config-channel');
+            summaryChan.innerText = channelSelect.options[channelSelect.selectedIndex].text;
+            
+            document.getElementById('summary-personality').innerText = document.getElementById('wizard_personality').value;
+            
+            fetch(`/api/docs/${currentServerId}`)
+            .then(res => res.json())
+            .then(data => {
+                const docs = data.documents || [];
+                document.getElementById('summary-docs-count').innerText = `${docs.length} file(s) ingested in long-term memory`;
+            });
+        }
+        
+        function saveWizardConfig() {
+            const personalityText = document.getElementById('wizard_personality').value;
+            const configChannel = document.getElementById('wizard_config_channel').value;
+            
+            const payload = {
+                personality: personalityText,
+                sleep_enabled: currentServerConfig.sleep_enabled !== undefined ? currentServerConfig.sleep_enabled : false,
+                sleep_hour: currentServerConfig.sleep_hour !== undefined ? currentServerConfig.sleep_hour : 3,
+                sleep_minute: currentServerConfig.sleep_minute !== undefined ? currentServerConfig.sleep_minute : 0,
+                sleep_timezone: currentServerConfig.sleep_timezone || "America/Chicago",
+                custom_presets: customPresets,
+                selected_txt2img_model: currentServerConfig.selected_txt2img_model || "",
+                selected_img2img_model: currentServerConfig.selected_img2img_model || "",
+                selected_txt2video_model: currentServerConfig.selected_txt2video_model || "",
+                selected_img2video_model: currentServerConfig.selected_img2video_model || "",
+                selected_txt2music_model: currentServerConfig.selected_txt2music_model || "",
+                config_channel: configChannel,
+                channel_personalities: currentServerConfig.channel_personalities || {}
+            };
+            
+            fetch(`/api/config/${currentServerId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                closeWizard();
+                // Reload dashboard settings
+                loadConfig(currentServerId, document.getElementById('current-server-name').innerText);
+                
+                // Show standard status message
+                const msg = document.getElementById("status-msg");
+                msg.innerText = "✅ Wizard setup complete! Petey is active.";
+                msg.style.color = "#43b581";
+                setTimeout(() => msg.innerText = "", 5000);
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Failed to save wizard settings. Please check network/server logs.");
+            });
+        }
+    </script>
+    <div style="text-align: center; padding: 20px; font-size: 0.8rem; color: var(--muted); margin-top: 40px; border-top: 1px solid var(--border);">
+        <a href="/tos" style="color: var(--muted); text-decoration: none; margin: 0 10px;">Terms of Service</a> | 
+        <a href="/privacy" style="color: var(--muted); text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+    </div>
+</body>
+
+</html>

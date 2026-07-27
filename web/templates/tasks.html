@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduled Tasks — {{ guild_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --bg: #1e1f22;
+            --surface: #2b2d31;
+            --surface2: #111214;
+            --surface3: #202225;
+            --border: #1e1f22;
+            --accent: #5865F2;
+            --accent2: #4752C4;
+            --green: #23a559;
+            --red: #da373c;
+            --yellow: #f1c40f;
+            --blue: #00aff4;
+            --text: #dbdee1;
+            --muted: #80848e;
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header_deprecated {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .logo_deprecated {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent2);
+        }
+
+        .back-btn_deprecated {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color .2s;
+        }
+
+        .back-btn:hover {
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: .3rem;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: .9rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
+            padding-bottom: .75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Type tabs ── */
+        .type-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.4rem;
+        }
+
+        .type-tab {
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .type-tab:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .type-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        /* ── Type badges ── */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: .72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .badge-search {
+            background: rgba(124, 106, 247, .2);
+            color: var(--accent2);
+        }
+
+        .badge-fetch {
+            background: rgba(96, 165, 250, .2);
+            color: var(--blue);
+        }
+
+        .badge-summarize {
+            background: rgba(52, 211, 153, .2);
+            color: var(--green);
+        }
+
+        /* ── Form ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full {
+            grid-column: 1/-1;
+        }
+
+        label {
+            font-size: .78rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        input,
+        select,
+        textarea {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: .6rem .8rem;
+            font-family: inherit;
+            font-size: .9rem;
+            outline: none;
+            transition: border-color .2s;
+            width: 100%;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .days-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .day-check {
+            display: none;
+        }
+
+        .day-label {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: .8rem;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            color: var(--muted);
+            transition: all .2s;
+            user-select: none;
+        }
+
+        .day-check:checked+.day-label {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .time-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .time-row input {
+            width: 70px;
+            text-align: center;
+        }
+
+        .time-sep {
+            color: var(--muted);
+            font-size: 1.2rem;
+        }
+
+        /* ── RSS source list ── */
+        .rss-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rss-entry {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .rss-entry input {
+            flex: 1;
+        }
+
+        .rss-remove {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s;
+            flex-shrink: 0;
+        }
+
+        .rss-remove:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .add-rss-btn {
+            background: transparent;
+            border: 1px dashed var(--border);
+            color: var(--muted);
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            font-size: .82rem;
+            width: 100%;
+            transition: all .2s;
+            margin-top: 4px;
+        }
+
+        .add-rss-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── RSS helper ── */
+        .rss-helper {
+            background: var(--surface3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: .5rem;
+        }
+
+        .rss-helper-toggle {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: .8rem;
+            padding: 8px 12px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            transition: color .2s;
+        }
+
+        .rss-helper-toggle:hover {
+            color: var(--text);
+        }
+
+        .rss-helper-body {
+            display: none;
+            padding: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .rss-helper-body.open {
+            display: block;
+        }
+
+        .rss-example {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: .8rem;
+        }
+
+        .rss-example:last-child {
+            border-bottom: none;
+        }
+
+        .rss-example strong {
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .rss-example code {
+            color: var(--muted);
+            font-size: .75rem;
+            word-break: break-all;
+        }
+
+        .rss-copy-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            border-radius: 4px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: .72rem;
+            white-space: nowrap;
+            transition: all .2s;
+        }
+
+        .rss-copy-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: .6rem 1.3rem;
+            border-radius: 8px;
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all .2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent2);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: .78rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            font-family: inherit;
+            transition: all .15s;
+        }
+
+        .btn-toggle {
+            background: transparent;
+            color: var(--muted);
+            border-color: var(--border);
+        }
+
+        .btn-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-edit {
+            background: transparent;
+            color: var(--yellow);
+            border-color: var(--yellow);
+        }
+
+        .btn-edit:hover {
+            background: var(--yellow);
+            color: #000;
+        }
+
+        .btn-run {
+            background: transparent;
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        .btn-run:hover {
+            background: var(--green);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: var(--red);
+            color: #fff;
+        }
+
+        /* ── Task cards ── */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: .9rem;
+        }
+
+        .task-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            transition: opacity .2s;
+        }
+
+        .task-item.disabled {
+            opacity: .42;
+        }
+
+        .task-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .task-name {
+            font-weight: 600;
+            font-size: .95rem;
+        }
+
+        .task-meta {
+            font-size: .78rem;
+            color: var(--muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: .74rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+
+        .status-dot.on {
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green);
+        }
+
+        .status-dot.off {
+            background: var(--muted);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 2rem;
+            font-size: .9rem;
+        }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .75);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.8rem;
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 1.2rem;
+        }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: .8rem 1.2rem;
+            border-radius: 8px;
+            font-size: .9rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all .3s;
+            z-index: 999;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        #toast.success {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        #toast.error {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        /* ── FLOW BUILDER ── */
+        .flow-container {
+            display: flex;
+            gap: 1.5rem;
+            height: 600px;
+            margin-top: 1rem;
+        }
+
+        .flow-palette {
+            width: 220px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .flow-palette h4 {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .flow-tile {
+            background: var(--surface3);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: transform 0.1s, border-color 0.2s;
+        }
+
+        .flow-tile:hover {
+            border-color: var(--accent);
+            transform: scale(1.02);
+        }
+
+        .flow-tile:active {
+            cursor: grabbing;
+        }
+
+        .flow-canvas {
+            flex: 1;
+            background: var(--bg);
+            background-image: radial-gradient(var(--surface3) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flow-node {
+            position: absolute;
+            width: 180px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .node-header {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .node-trigger .node-header { background: rgba(251, 191, 36, 0.1); border-top: 2px solid var(--yellow); }
+        .node-logic .node-header { background: rgba(96, 165, 250, 0.1); border-top: 2px solid var(--blue); }
+        .node-action .node-header { background: rgba(167, 139, 250, 0.1); border-top: 2px solid var(--accent2); }
+
+        .node-label { flex: 1; }
+        .node-delete { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; }
+        .node-delete:hover { color: var(--red); }
+
+        .node-content { padding: 12px; font-size: 0.75rem; color: var(--text); }
+        .node-content input, .node-content select { font-size: 0.75rem; padding: 4px 8px; margin-top: 4px; }
+
+        .node-port {
+            width: 10px;
+            height: 10px;
+            background: var(--muted);
+            border-radius: 50%;
+            position: absolute;
+            border: 2px solid var(--bg);
+            cursor: crosshair;
+        }
+
+        .port-out { right: -6px; top: 50%; transform: translateY(-50%); }
+        .port-in { left: -6px; top: 50%; transform: translateY(-50%); }
+
+        .save-flow-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+            gap: 10px;
+        }
+
+                .save-flow-bar input {
+            width: 220px;
+        }
+
+        .flow-list {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .flow-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .flow-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .flow-meta {
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .flow-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .builder-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+            font-size: 0.85rem;
+        }
+        .checkbox-row input {
+            width: auto;
+        }
+        /* ── hidden ── */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="topbar">
+        <div class="logo" >PETEY<span>_CONTROL</span></div>
+        <div class="nav-links-internal" style="display: flex; gap: 15px; margin-left: auto; margin-right: 25px;">
+            <a href="/#about" style="color: #b5bac1; text-decoration: none; font-size: 0.85rem; font-weight: 500;">Origins</a>
+            <a href="/#features" style="color: #b5bac1; text-decoration: none; font-size: 0.85rem; font-weight: 500;">Functions</a>
+            <a href="/#faq" style="color: #b5bac1; text-decoration: none; font-size: 0.85rem; font-weight: 500;">FAQ</a>
+        </div>
+        <div class="user-block"><a href="/dashboard" class="logout-btn" style="background:var(--accent); color:#fff; font-weight:600; padding:6px 12px; border-radius:4px; text-decoration:none;">← Back to Dashboard</a></div>
+    </header>
+
+    <div class="container" style="max-width: 1200px;">
+        <div class="builder-header">
+            <div>
+                <h1>⏰ PETEY Automation Builder</h1>
+                <p class="subtitle">{{ guild_name }} — Drag and drop nodes to create complex "If This Then That" sequences.</p>
+            </div>
+            <button class="btn btn-sm btn-toggle" id="flowTryBtn" onclick="toggleFlowBuilder()">Tryout</button>
+        </div>
+
+        <div id="flowBuilderSection" class="hidden">
+        <!-- ── Visual Flow Builder ── -->
+        <div class="card">
+            <div class="card-title">🔗 Flow Builder (BETA)</div>
+            
+            <div class="flow-container">
+                <!-- Palette -->
+                <aside class="flow-palette" id="flowPalette">
+                    <h4>Triggers</h4>
+                    <div class="flow-tile" data-type="message" data-category="trigger" data-label="On Message">
+                        <span>💬</span> On Message
+                    </div>
+                    <div class="flow-tile" data-type="schedule" data-category="trigger" data-label="On Schedule">
+                        <span>⏰</span> On Schedule
+                    </div>
+                    <div class="flow-tile" data-type="rss" data-category="trigger" data-label="RSS Feed">
+                        <span>📡</span> RSS Feed
+                    </div>
+
+                    <h4 style="margin-top:1rem;">Logic & Flow</h4>
+                    <div class="flow-tile" data-type="random_choice" data-category="logic" data-label="Random Route">
+                        <span>🎲</span> Random Route
+                    </div>
+                    <div class="flow-tile" data-type="limit" data-category="logic" data-label="Limit / Throttle">
+                        <span>⏳</span> Limit Runs
+                    </div>
+                    <div class="flow-tile" data-type="filter" data-category="logic" data-label="Filter Content">
+                        <span>🔍</span> Filter
+                    </div>
+
+                    <h4 style="margin-top:1rem;">Actions</h4>
+                    <div class="flow-tile" data-type="post" data-category="action" data-label="Post Message">
+                        <span>📤</span> Post to Discord
+                    </div>
+                    <div class="flow-tile" data-type="genimg" data-category="action" data-label="Generate Image">
+                        <span>🎨</span> Gen Image
+                    </div>
+                    <div class="flow-tile" data-type="search" data-category="action" data-label="Web Search">
+                        <span>🌐</span> Web Search
+                    </div>
+                    <div class="flow-tile" data-type="llm_transform" data-category="action" data-label="LLM Transform">
+                        <span>🧠</span> LLM Transform
+                    </div>
+
+                    <h4 style="margin-top:1.5rem; font-size:0.8rem; color:var(--muted);">Variables Ref</h4>
+                    <div style="font-size: 0.7rem; color: var(--muted); padding: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-top: 4px;">
+                        <div><strong style="color:var(--text);">{author}</strong> User's Name</div>
+                        <div><strong style="color:var(--text);">&lt;@{author_id}&gt;</strong> Ping User</div>
+                        <div><strong style="color:var(--text);">{trigger_text}</strong> Trigger msg</div>
+                        <div><strong style="color:var(--text);">{last_output}</strong> Prev Node result</div>
+                        <div><strong style="color:var(--text);">{time}</strong> Server time</div>
+                    </div>
+                </aside>
+
+                <!-- Canvas -->
+                <div class="flow-canvas" id="flowCanvas">
+                    <!-- Nodes will be rendered here -->
+                </div>
+            </div>
+
+            <div class="save-flow-bar">
+                <input type="text" id="flowName" placeholder="Flow name">
+                <button class="btn btn-primary" onclick="saveFlow()">Save Flow</button>
+                <button class="btn btn-sm btn-toggle" onclick="newFlow()">New Flow</button>
+            </div>
+
+            <div class="flow-list" id="flowList"></div>
+        </div>
+
+        <h1 style="margin-top: 3rem;">Task List</h1>
+        <p class="subtitle">Standard scheduled tasks.</p>
+
+        <!-- ── Create form ── -->
+        <div class="card">
+            <div class="card-title">➕ Create New Task</div>
+
+            <!-- Type selector -->
+            <div class="type-tabs" id="typeTabs">
+                <button class="type-tab active" data-type="search" onclick="setType('search',this)">🔍 Search</button>
+                <button class="type-tab" data-type="fetch" onclick="setType('fetch',this)">📡 Fetch RSS</button>
+                <button class="type-tab" data-type="summarize" onclick="setType('summarize',this)">📝 Summarize</button>
+            </div>
+
+            <form id="taskForm">
+                <input type="hidden" id="f-type" value="search">
+                <div class="form-grid">
+                    <!-- Always visible -->
+                    <div class="form-group">
+                        <label>Task Name</label>
+                        <input type="text" id="f-name" placeholder="My Task" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Post to Channel</label>
+                        <select id="f-channel" required>
+                            <option value="">— select channel —</option>
+                            {% for ch in text_channels %}
+                            <option value="{{ ch.id }}"># {{ ch.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- SEARCH fields -->
+                    <div class="form-group full" id="f-search-fields">
+                        <label>Search Query</label>
+                        <input type="text" id="f-query" placeholder="UFO UAP sightings news latest 2025">
+                        <small style="color:var(--muted);font-size:.78rem;">Petey searches the web and summarizes
+                            results. Posts every time it runs.</small>
+                    </div>
+
+                    <!-- FETCH fields -->
+                    <div class="form-group full hidden" id="f-fetch-fields">
+                        <label>RSS Feed URLs</label>
+                        <div class="rss-list" id="f-rss-list">
+                            <div class="rss-entry">
+                                <input type="url" class="rss-url"
+                                    placeholder="https://feeds.reuters.com/reuters/topNews">
+                                <button type="button" class="rss-remove" onclick="removeRss(this)">✕</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-rss-btn" onclick="addRssField('f-rss-list')">+ Add another
+                            feed</button>
+                        <div style="margin-top:.8rem;">
+                            <div class="checkbox-row">
+                                <input type="checkbox" id="f-suppress-embeds">
+                                <span>Disable RSS link embeds</span>
+                            </div>
+                            <small style="color:var(--muted);font-size:.78rem;">Posts links without previews.</small>
+                        </div>
+
+                        <!-- RSS Helper -->
+                        <div class="rss-helper" style="margin-top:.8rem;">
+                            <button type="button" class="rss-helper-toggle" onclick="toggleHelper(this)">
+                                <span>💡 How to find RSS feed URLs</span><span>▸</span>
+                            </button>
+                            <div class="rss-helper-body">
+                                <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;">Copy one of these or
+                                    find your own. Most news sites, YouTube channels, and Reddit pages have RSS feeds.
+                                </p>
+                                {% for site, url in [
+                                ('Reuters Top News', 'https://feeds.reuters.com/reuters/topNews'),
+                                ('BBC News', 'https://feeds.bbci.co.uk/news/rss.xml'),
+                                ('NASA News', 'https://www.nasa.gov/rss/dyn/breaking_news.rss'),
+                                ('Reddit /r/UFOs', 'https://www.reddit.com/r/UFOs/.rss'),
+                                ('Reddit /r/worldnews','https://www.reddit.com/r/worldnews/.rss'),
+                                ('ArsTechnica', 'https://feeds.arstechnica.com/arstechnica/index'),
+                                ('Hacker News', 'https://feeds.feedburner.com/TheHackersNews'),
+                                ] %}
+                                <div class="rss-example">
+                                    <strong>{{ site }}</strong>
+                                    <code>{{ url }}</code>
+                                    <button type="button" class="rss-copy-btn"
+                                        onclick="copyFeed('{{ url }}','f-rss-list')">Use</button>
+                                </div>
+                                {% endfor %}
+                                <p style="font-size:.75rem;color:var(--muted);margin-top:10px;">
+                                    <strong>YouTube:</strong>
+                                    https://www.youtube.com/feeds/videos.xml?channel_id=<em>CHANNEL_ID</em><br>
+                                    <strong>Any Reddit:</strong> https://www.reddit.com/r/<em>SUBREDDIT</em>/.rss<br>
+                                    <strong>Find on a site:</strong> look for an orange RSS icon or add
+                                    <code>/feed</code> or <code>/rss</code> to the URL.
+                                </p>
+                            </div>
+                        </div>
+                        <small style="color:var(--muted);font-size:.78rem;margin-top:4px;">Only posts when there are NEW
+                            items since the last run. Silent if nothing changed.</small>
+                    </div>
+
+                    <!-- SUMMARIZE notice -->
+                    <div class="form-group full hidden" id="f-summarize-fields">
+                        <div
+                            style="background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:.85rem;margin-bottom:.8rem;">
+                            📝 <strong>Summarize mode:</strong> At the scheduled time, Petey reads recent
+                            messages across every channel it has access to, then posts a recap digest.
+                        </div>
+                        <label>Look back how many days?</label>
+                        <select id="f-lookback">
+                            <option value="1" selected>1 day (today only)</option>
+                            <option value="2">2 days</option>
+                            <option value="3">3 days</option>
+                        </select>
+                    </div>
+
+                    <!-- Schedule (always visible) -->
+                    <div class="form-group full" id="f-days-group">
+                        <label>Days of Week</label>
+                        <div class="days-row">
+                            {% for v,l in
+                            [('mon','Mon'),('tue','Tue'),('wed','Wed'),('thu','Thu'),('fri','Fri'),('sat','Sat'),('sun','Sun')]
+                            %}
+                            <input class="day-check" type="checkbox" id="d-{{ v }}" value="{{ v }}">
+                            <label class="day-label" for="d-{{ v }}">{{ l }}</label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Time</label>
+                        <div class="time-row">
+                            <input type="number" id="f-hour" min="0" max="23" value="8">
+                            <span class="time-sep">:</span>
+                            <input type="number" id="f-minute" min="0" max="59" value="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Timezone</label>
+                        <select id="f-tz">
+                            <option value="America/New_York">Eastern (ET)</option>
+                            <option value="America/Chicago" selected>Central (CT)</option>
+                            <option value="America/Denver">Mountain (MT)</option>
+                            <option value="America/Los_Angeles">Pacific (PT)</option>
+                            <option value="America/Anchorage">Alaska (AKT)</option>
+                            <option value="Pacific/Honolulu">Hawaii (HST)</option>
+                            <option value="UTC">UTC</option>
+                        </select>
+                    </div>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">Create Task</button>
+            </form>
+        </div>
+
+        <!-- Task list -->
+        <div class="card">
+            <div class="card-title">📋 Your Tasks</div>
+            <div class="task-list" id="taskList">
+                <div class="empty-state">Loading…</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Edit Modal ── -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-title">✏️ Edit Task</div>
+            <input type="hidden" id="e-id">
+
+            <div class="type-tabs" id="editTypeTabs">
+                <button class="type-tab active" data-type="search" onclick="setEditType('search',this)">🔍
+                    Search</button>
+                <button class="type-tab" data-type="fetch" onclick="setEditType('fetch',this)">📡 Fetch RSS</button>
+                <button class="type-tab" data-type="summarize" onclick="setEditType('summarize',this)">📝
+                    Summarize</button>
+            </div>
+            <input type="hidden" id="e-type" value="search">
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Task Name</label>
+                    <input type="text" id="e-name">
+                </div>
+                <div class="form-group">
+                    <label>Post to Channel</label>
+                    <select id="e-channel">
+                        <option value="">— select —</option>
+                        {% for ch in text_channels %}
+                        <option value="{{ ch.id }}"># {{ ch.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group full" id="e-search-fields">
+                    <label>Search Query</label>
+                    <input type="text" id="e-query">
+                </div>
+                <div class="form-group full hidden" id="e-fetch-fields">
+                    <label>RSS Feed URLs</label>
+                    <div class="rss-list" id="e-rss-list"></div>
+                    <button type="button" class="add-rss-btn" onclick="addRssField('e-rss-list')">+ Add feed</button>
+                    <div style="margin-top:.8rem;">
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="e-suppress-embeds">
+                            <span>Disable RSS link embeds</span>
+                        </div>
+                        <small style="color:var(--muted);font-size:.78rem;">Posts links without previews.</small>
+                    </div>
+
+                </div>
+                <div class="form-group full hidden" id="e-summarize-fields">
+                    <div
+                        style="background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:.85rem;margin-bottom:.8rem;">
+                        📝 Summarize reads recent messages and posts a recap.
+                    </div>
+                    <label>Look back how many days?</label>
+                    <select id="e-lookback">
+                        <option value="1">1 day (today only)</option>
+                        <option value="2">2 days</option>
+                        <option value="3">3 days</option>
+                    </select>
+                </div>
+                <div class="form-group full">
+                    <label>Days of Week</label>
+                    <div class="days-row">
+                        {% for v,l in
+                        [('mon','Mon'),('tue','Tue'),('wed','Wed'),('thu','Thu'),('fri','Fri'),('sat','Sat'),('sun','Sun')]
+                        %}
+                        <input class="day-check edit-day" type="checkbox" id="ed-{{ v }}" value="{{ v }}">
+                        <label class="day-label" for="ed-{{ v }}">{{ l }}</label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Time</label>
+                    <div class="time-row">
+                        <input type="number" id="e-hour" min="0" max="23">
+                        <span class="time-sep">:</span>
+                        <input type="number" id="e-minute" min="0" max="59">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Timezone</label>
+                    <select id="e-tz">
+                        <option value="America/New_York">Eastern (ET)</option>
+                        <option value="America/Chicago">Central (CT)</option>
+                        <option value="America/Denver">Mountain (MT)</option>
+                        <option value="America/Los_Angeles">Pacific (PT)</option>
+                        <option value="America/Anchorage">Alaska (AKT)</option>
+                        <option value="Pacific/Honolulu">Hawaii (HST)</option>
+                        <option value="UTC">UTC</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+                <button class="btn btn-sm btn-toggle" onclick="closeEdit()"
+                    style="padding:.6rem 1rem;font-size:.9rem;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="{{ url_for('static', filename='flow_builder.js') }}"></script>
+    <script>
+        const SERVER_ID = "{{ server_id }}";
+        window.guildChannels = [
+            {% for ch in text_channels %}
+            { id: "{{ ch.id }}", name: "{{ ch.name }}" },
+            {% endfor %}
+        ];
+        const builder = new FlowBuilder('flowCanvas', 'flowPalette');
+let currentFlowId = null;
+
+function newFlow() {
+    currentFlowId = null;
+    const nameEl = document.getElementById('flowName');
+    if (nameEl) nameEl.value = '';
+    builder.load({ nodes: [], links: [] });
+}
+
+async function loadFlows() {
+    const res = await fetch(`/api/flows/${SERVER_ID}`);
+    const data = await res.json();
+    renderFlowList(Array.isArray(data) ? data : []);
+}
+
+function renderFlowList(flows) {
+    const list = document.getElementById('flowList');
+    if (!list) return;
+    if (!flows.length) {
+        list.innerHTML = '<div class="empty-state">No flows yet. Build one above!</div>';
+        return;
+    }
+
+    list.innerHTML = flows.map(f => {
+        const enabled = f.enabled ? 'Enabled' : 'Disabled';
+        const created = f.created_at ? new Date(f.created_at).toLocaleString() : 'Unknown';
+        return `
+            <div class="flow-item" id="flow-${f.id}">
+                <div>
+                    <div class="flow-name">${f.name}</div>
+                    <div class="flow-meta">
+                        <span class="tag">${enabled}</span>
+                        <span class="tag">Created: ${created}</span>
+                    </div>
+                </div>
+                <div class="flow-actions">
+                    <button class="btn-sm btn-edit" onclick='loadFlow(${JSON.stringify(f)})'>Load</button>
+                    <button class="btn-sm btn-toggle" onclick="toggleFlow(${f.id})">${f.enabled ? 'Disable' : 'Enable'}</button>
+                    <button class="btn-sm btn-danger" onclick="deleteFlow(${f.id})">Delete</button>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+function parseFlowJson(flowJson) {
+    if (!flowJson) return null;
+    if (typeof flowJson === 'string') {
+        try { return JSON.parse(flowJson); } catch (e) { return null; }
+    }
+    return flowJson;
+}
+
+function loadFlow(flow) {
+    const flowData = parseFlowJson(flow.flow_json);
+    if (!flowData) {
+        toast('Failed to load flow JSON.', 'error');
+        return;
+    }
+    builder.load(flowData);
+    currentFlowId = flow.id;
+    const nameEl = document.getElementById('flowName');
+    if (nameEl) nameEl.value = flow.name || '';
+    toast('Flow loaded.');
+}
+
+async function saveFlow() {
+    const name = (document.getElementById('flowName')?.value || '').trim();
+    if (!name) { toast('Give this flow a name.', 'error'); return; }
+    if (!builder.nodes.length) { toast('Add at least one node.', 'error'); return; }
+
+    const body = {
+        name,
+        flow: builder.serialize()
+    };
+
+    const method = currentFlowId ? 'PUT' : 'POST';
+    const url = currentFlowId ? `/api/flows/${SERVER_ID}/${currentFlowId}` : `/api/flows/${SERVER_ID}`;
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (data.status === 'created' || data.status === 'updated') {
+        if (data.id) currentFlowId = data.id;
+        toast('Flow saved!');
+        loadFlows();
+    } else {
+        toast(data.error || 'Failed to save flow.', 'error');
+    }
+}
+
+async function toggleFlow(id) {
+    const res = await fetch(`/api/flows/${SERVER_ID}/${id}/toggle`, { method: 'POST' });
+    const data = await res.json();
+    if (data.status === 'ok') { toast(data.enabled ? 'Enabled!' : 'Disabled.'); loadFlows(); }
+    else toast(data.error || 'Failed.', 'error');
+}
+
+async function deleteFlow(id) {
+    if (!confirm('Delete this flow?')) return;
+    const res = await fetch(`/api/flows/${SERVER_ID}/${id}/delete`, { method: 'POST' });
+    const data = await res.json();
+    if (data.status === 'deleted') { toast('Deleted.'); if (currentFlowId === id) newFlow(); loadFlows(); }
+    else toast(data.error || 'Failed.', 'error');
+}
+
+        // ── Toast ─────────────────────────────────────────────────────────────────────
+        function toast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = `show ${type}`;
+            setTimeout(() => el.className = '', 3000);
+        }
+
+        function toggleFlowBuilder() {
+            const section = document.getElementById('flowBuilderSection');
+            const btn = document.getElementById('flowTryBtn');
+            if (!section || !btn) return;
+            const isHidden = section.classList.toggle('hidden');
+            btn.textContent = isHidden ? 'Tryout' : 'Hide Builder';
+            if (!isHidden) loadFlows();
+        }
+
+        // ── Type switching (create form) ──────────────────────────────────────────────
+        function setType(type, btn) {
+            document.getElementById('f-type').value = type;
+            document.querySelectorAll('#typeTabs .type-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('f-search-fields').classList.toggle('hidden', type !== 'search');
+            document.getElementById('f-fetch-fields').classList.toggle('hidden', type !== 'fetch');
+            document.getElementById('f-summarize-fields').classList.toggle('hidden', type !== 'summarize');
+        }
+
+        function setEditType(type, btn) {
+            document.getElementById('e-type').value = type;
+            document.querySelectorAll('#editTypeTabs .type-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('e-search-fields').classList.toggle('hidden', type !== 'search');
+            document.getElementById('e-fetch-fields').classList.toggle('hidden', type !== 'fetch');
+            document.getElementById('e-summarize-fields').classList.toggle('hidden', type !== 'summarize');
+        }
+
+        // ── RSS feed helpers ──────────────────────────────────────────────────────────
+        function addRssField(listId, prefill = '') {
+            const list = document.getElementById(listId);
+            const entry = document.createElement('div');
+            entry.className = 'rss-entry';
+            entry.innerHTML = `<input type="url" class="rss-url" placeholder="https://...feeds..." value="${prefill}">
+                       <button type="button" class="rss-remove" onclick="removeRss(this)">✕</button>`;
+            list.appendChild(entry);
+        }
+
+        function removeRss(btn) {
+            const list = btn.closest('.rss-list');
+            if (list.querySelectorAll('.rss-entry').length > 1)
+                btn.closest('.rss-entry').remove();
+            else
+                btn.closest('.rss-entry').querySelector('input').value = '';
+        }
+
+        function getRssUrls(listId) {
+            return [...document.querySelectorAll(`#${listId} .rss-url`)]
+                .map(i => i.value.trim()).filter(Boolean);
+        }
+
+        function copyFeed(url, listId) {
+            const inputs = document.querySelectorAll(`#${listId} .rss-url`);
+            const empty = [...inputs].find(i => !i.value.trim());
+            if (empty) { empty.value = url; }
+            else { addRssField(listId, url); }
+            toast('Feed added!');
+        }
+
+        function toggleHelper(btn) {
+            const body = btn.nextElementSibling;
+            const open = body.classList.toggle('open');
+            btn.querySelector('span:last-child').textContent = open ? '▾' : '▸';
+        }
+
+        // ── Load tasks ────────────────────────────────────────────────────────────────
+        async function loadTasks() {
+            const res = await fetch(`/api/tasks/${SERVER_ID}`);
+            const data = await res.json();
+            const el = document.getElementById('taskList');
+
+            if (!data.length) {
+                el.innerHTML = '<div class="empty-state">No tasks yet — create one above!</div>';
+                return;
+            }
+
+            const typeMeta = {
+                search: { emoji: '🔍', cls: 'badge-search', label: 'Search' },
+                fetch: { emoji: '📡', cls: 'badge-fetch', label: 'Fetch RSS' },
+                summarize: { emoji: '📝', cls: 'badge-summarize', label: 'Summarize' },
+            };
+
+            el.innerHTML = data.map(t => {
+                const tm = typeMeta[t.task_type] || typeMeta.search;
+                const days = JSON.parse(t.days || '[]').join(', ').toUpperCase() || '—';
+                const timeStr = String(t.hour).padStart(2, '0') + ':' + String(t.minute).padStart(2, '0');
+                const tzShort = t.timezone.split('/').pop().replace('_', ' ');
+                const lastRun = t.last_run ? new Date(t.last_run + 'Z').toLocaleString() : 'Never';
+                const dotCls = t.enabled ? 'on' : 'off';
+                const itemCls = t.enabled ? '' : 'disabled';
+
+                let extra = '';
+                if (t.task_type === 'search')
+                    extra = `<span class="tag">🔍 ${(t.search_query || '').slice(0, 40)}${t.search_query?.length > 40 ? '…' : ''}</span>`;
+                else if (t.task_type === 'fetch') {
+                    const srcs = JSON.parse(t.sources || '[]');
+                    extra = `<span class="tag">📡 ${srcs.length} feed${srcs.length !== 1 ? 's' : ''}</span>`;
+                } else {
+                    const lb = t.lookback_days || 1;
+                    extra = `<span class="tag">📝 Recap ${lb} day${lb > 1 ? 's' : ''}</span>`;
+                }
+
+                return `
+        <div class="task-item ${itemCls}" id="task-${t.id}">
+            <div class="status-dot ${dotCls}"></div>
+            <div class="task-info">
+                <div class="task-header">
+                    <div class="task-name">${t.name}</div>
+                    <span class="badge ${tm.cls}">${tm.emoji} ${tm.label}</span>
+                </div>
+                <div class="task-meta">
+                    <span class="tag">📅 ${days}</span>
+                    <span class="tag">🕐 ${timeStr} ${tzShort}</span>
+                    ${extra}
+                    <span class="tag">Last run: ${lastRun}</span>
+                </div>
+            </div>
+            <div class="task-actions">
+                <button class="btn-sm btn-run"    onclick="forceRun(${t.id})">▶ Run Now</button>
+                <button class="btn-sm btn-edit"   onclick='openEdit(${JSON.stringify(t)})'>✏ Edit</button>
+                <button class="btn-sm btn-toggle" onclick="toggleTask(${t.id})">${t.enabled ? 'Disable' : 'Enable'}</button>
+                <button class="btn-sm btn-danger" onclick="deleteTask(${t.id})">Delete</button>
+            </div>
+        </div>`;
+            }).join('');
+        }
+
+        // ── Create ────────────────────────────────────────────────────────────────────
+        document.getElementById('taskForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const type = document.getElementById('f-type').value;
+            const days = [...document.querySelectorAll('.day-check:not(.edit-day):checked')].map(cb => cb.value);
+            if (!days.length) { toast('Select at least one day.', 'error'); return; }
+
+            const sources = type === 'fetch' ? getRssUrls('f-rss-list') : [];
+            if (type === 'fetch' && !sources.length) { toast('Add at least one RSS feed URL.', 'error'); return; }
+            const suppressEmbeds = type === 'fetch' ? document.getElementById('f-suppress-embeds').checked : false;
+
+            const body = {
+                task_type: type,
+                name: document.getElementById('f-name').value.trim(),
+                channel_id: document.getElementById('f-channel').value,
+                search_query: type === 'search' ? document.getElementById('f-query').value.trim() : '',
+                sources,
+                suppress_embeds: suppressEmbeds,
+                lookback_days: type === 'summarize' ? parseInt(document.getElementById('f-lookback').value) : 1,
+                days,
+                hour: parseInt(document.getElementById('f-hour').value),
+                minute: parseInt(document.getElementById('f-minute').value),
+                timezone: document.getElementById('f-tz').value
+            };
+            const res = await fetch(`/api/tasks/${SERVER_ID}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const data = await res.json();
+            if (data.status === 'created') { toast('Task created!'); e.target.reset(); loadTasks(); }
+            else toast(data.error || 'Failed to create task.', 'error');
+        });
+
+        // ── Edit modal ────────────────────────────────────────────────────────────────
+        function openEdit(t) {
+            document.getElementById('e-id').value = t.id;
+            document.getElementById('e-name').value = t.name;
+            document.getElementById('e-channel').value = t.channel_id;
+            document.getElementById('e-query').value = t.search_query || '';
+            document.getElementById('e-hour').value = t.hour;
+            document.getElementById('e-minute').value = t.minute;
+            document.getElementById('e-tz').value = t.timezone;
+            if (t.lookback_days) document.getElementById('e-lookback').value = t.lookback_days;
+
+            // Set type tabs
+            const type = t.task_type || 'search';
+            const tabBtn = document.querySelector(`#editTypeTabs [data-type="${type}"]`);
+            if (tabBtn) setEditType(type, tabBtn);
+
+            // Populate RSS
+            const rList = document.getElementById('e-rss-list');
+            rList.innerHTML = '';
+            const srcs = JSON.parse(t.sources || '[]');
+            if (srcs.length) { srcs.forEach(url => addRssField('e-rss-list', url)); }
+            else addRssField('e-rss-list');
+
+            const suppressEl = document.getElementById('e-suppress-embeds');
+            if (suppressEl) suppressEl.checked = !!t.suppress_embeds;
+
+            // Days
+            const activeDays = JSON.parse(t.days || '[]');
+            document.querySelectorAll('.edit-day').forEach(cb => { cb.checked = activeDays.includes(cb.value); });
+
+            document.getElementById('editModal').classList.add('open');
+        }
+
+        function closeEdit() { document.getElementById('editModal').classList.remove('open'); }
+        document.getElementById('editModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEdit(); });
+
+        async function saveEdit() {
+            const id = document.getElementById('e-id').value;
+            const type = document.getElementById('e-type').value;
+            const days = [...document.querySelectorAll('.edit-day:checked')].map(cb => cb.value);
+            if (!days.length) { toast('Select at least one day.', 'error'); return; }
+
+            const sources = type === 'fetch' ? getRssUrls('e-rss-list') : [];
+            const suppressEmbeds = type === 'fetch' ? document.getElementById('e-suppress-embeds').checked : false;
+            const body = {
+                task_type: type,
+                name: document.getElementById('e-name').value.trim(),
+                channel_id: document.getElementById('e-channel').value,
+                search_query: type === 'search' ? document.getElementById('e-query').value.trim() : '',
+                sources, days,
+                suppress_embeds: suppressEmbeds,
+                lookback_days: type === 'summarize' ? parseInt(document.getElementById('e-lookback').value) : 1,
+                hour: parseInt(document.getElementById('e-hour').value),
+                minute: parseInt(document.getElementById('e-minute').value),
+                timezone: document.getElementById('e-tz').value
+            };
+            const res = await fetch(`/api/tasks/${SERVER_ID}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const data = await res.json();
+            if (data.status === 'updated') { toast('Task updated!'); closeEdit(); loadTasks(); }
+            else toast(data.error || 'Failed to update.', 'error');
+        }
+
+        // ── Force run ─────────────────────────────────────────────────────────────────
+        async function forceRun(id) {
+            const res = await fetch(`/api/tasks/${SERVER_ID}/${id}/run`, { method: 'POST' });
+            const data = await res.json();
+            if (data.status === 'queued') toast('▶ Queued — Petey will run within 60 seconds!');
+            else toast(data.error || 'Failed.', 'error');
+        }
+
+        // ── Toggle + Delete ───────────────────────────────────────────────────────────
+        async function toggleTask(id) {
+            const res = await fetch(`/api/tasks/${SERVER_ID}/${id}/toggle`, { method: 'POST' });
+            const d = await res.json();
+            if (d.status === 'ok') { toast(d.enabled ? 'Enabled!' : 'Disabled.'); loadTasks(); }
+            else toast(d.error || 'Failed.', 'error');
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('Delete this task? This also clears its seen-items history.')) return;
+            const res = await fetch(`/api/tasks/${SERVER_ID}/${id}/delete`, { method: 'POST' });
+            const d = await res.json();
+            if (d.status === 'deleted') { toast('Deleted.'); loadTasks(); }
+            else toast(d.error || 'Failed.', 'error');
+        }
+
+        loadTasks();
+    </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
